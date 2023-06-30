@@ -1,0 +1,1122 @@
+<html>
+    <head>
+        <script src="https://code.jquery.com/jquery-3.5.1.js" integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc=" crossorigin="anonymous"> </script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+        {{ 'configurateur.style.css' | asset_url | stylesheet_tag }}
+    </head>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+</html>
+
+<script>
+var USD=1.09; // prix de l'euros en dollars
+var largeur_max_pegboard = 49; //Taille max / 3 - 1 trou
+var hauteur_max_pegboard = 49; //Taille max / 3 - 1 trou
+var taille_largeur_max_en_cm = largeur_max_pegboard * 3 + 3;
+var taille_hauteur_max_en_cm = hauteur_max_pegboard * 3 + 3;
+
+// Choix des couleurs sur le configurateur
+var colors_ =  [ 
+    {"name":"Contreplaqué Pin", "color":"#d49b66"},
+    {"name":"Contreplaqué Bouleau", "color":"#e9dacc"},
+    {"name":"Valchromat Noir", "color":"#312c2d"},
+    {"name":"Valchromat Rouge", "color":"#a73633"},
+    {"name":"Valchromat Orange", "color":"#b6503c"},
+    {"name":"Valchromat Jaune", "color":"#ca8e44"},
+    {"name":"Valchromat Violet", "color":"#542a3a"},
+    {"name":"Valchromat Bleu", "color":"#374a61"},
+    {"name":"Valchromat Vert", "color":"#518e83"},
+    {"name":"Valchromat Gris", "color":"#d0ceca"}
+];
+
+var pin="#d49b66",
+    bouleau="#e9dacc",
+    noir="#312c2d",
+    rouge="#a73633",
+    orange="#b6503c",
+    jaune="#ca8e44",
+    violet="#542a3a",
+    bleu="#374a61",
+    vert="#518e83",
+    gris="#d0ceca";
+
+</script>
+
+{% paginate collections.all.products by 1000 %}
+
+  {%- assign product = section.settings.product -%}
+  
+  <script>
+    var articles = [],
+        dossiers = [],
+        boards_prix = {};
+  </script>
+  
+  {% for product in collections["all"].products %} 
+    {% for variant in product.variants %}
+      <script>
+        boards_prix['{{ variant.id }}'] = parseFloat("{{ variant.price }}") / 100
+      </script>
+    {% endfor %}
+
+    {% if product.metafields.configurateur.disponible.value != blank and product.metafields.configurateur.disponible.value == true %}
+      {% assign dossiersList = "" %}
+      {% assign imagesList = "" %}
+      {% assign dossierNom = "" %}
+      {% assign dossierImage = "" %}
+      {% assign dossierParent = "" %}
+      {% assign dossierVisible = "" %}
+      {% assign variantTitle = "" %}
+      {% assign variantLongueur = "" %}
+      {% assign variantImage = "" %}
+      {% assign variantPrice = "" %}
+  
+      {% assign dossiersList = product.metafields.configurateur.dossiers | remove: '[' | remove: ']' | remove: '"' | split: "," %} 
+      {% assign imagesList = product.metafields.configurateur.imgsconfigurateur.value %}
+    
+      {% assign i = 0 %}
+      {% for image in imagesList %}
+        {% assign dossierNom = dossiersList[i] %}
+        {% assign dossierImage = image | img_url: '200x' %}
+
+        {% if i == 0 %}
+          {% assign dossierParent = "" %}
+          {% assign dossierVisible = 1 %}
+        {% else %}
+          {% assign j = i | minus: 1  %}
+          {% assign dossierParent = dossiersList[j] %}
+          {% assign dossierVisible = 1 %}
+        {% endif %}
+      
+        <script>
+        dossiers.push(
+        {
+          nom_FR : "{{ dossierNom }}" ,
+          nom_EN : "{{ dossierNom }}" ,
+          type : "{{ dossierNom }}" ,
+          photo : "{{ dossierImage }}",
+          dossier_parent: "{{ dossierParent }}",
+          profondeur: "{{ i }}",
+          visible: "{{ dossierVisible }}",
+          taille:20
+        })
+        </script>
+        {%  assign i = i | plus: 1 %}
+      {% endfor %} 
+
+      {% for variant in product.variants %}
+        {% assign variantID = variant.id %}
+        {% assign variantTitle = variant.title %}
+        {% assign variantLongueur = variant.metafields.configurateur.longueur %}
+        {% assign variantImage = variant.metafields.configurateur.image | img_url: '200x' %}
+        {% assign variantPrice = variant.price  | money_without_currency | replace:',','.'%}
+        
+        {% if variantTitle != blank and variantLongueur != blank and variantImage != blank and variantPrice != blank %}
+          <script>
+          articles.push(
+            {
+              "variant_ID":"{{ variantID }}",
+              "nom_FR": "{{ variantTitle }}",
+              "nom_EN": "{{ variantTitle }}",
+              "taille_CM": "{{ variantLongueur }}",
+              "type": "{{ dossierNom }}",
+              "photo": "{{ variantImage }}",
+              "profondeur": "{{ i }}",
+              "visible": "1",
+              "prix": "{{ variantPrice }}"
+            })  
+          </script>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  {% endfor %}
+
+{% endpaginate %}
+
+<!--
+####################################################################################################################################################
+####################################################################################################################################################
+####################################################################################################################################################
+FIN FICHIER : configurateur.articles.js.liquid
+####################################################################################################################################################
+####################################################################################################################################################
+####################################################################################################################################################
+-->
+    </head>
+    <body>
+      	<p id="tel-error" style="font-size:30px;text-align:center;font-weigh:400;padding:20px 5%;margin-bottom:-40px;">
+          Notre configurateur n'est disponible que sur les écrans de plus grande taille.<br>
+        </p>
+
+<!--
+        <div id="tuto-panel" style="display:none;z-index:99999;">
+          <h1>Ceci est le tuto du configurateur</h1>
+          <br>
+          <h2>Ceci est un sous-titre</h2>
+          <br>
+          <p>
+            Ceci est le premier paragraphe.
+            <br>
+            Il peut contenir des images : <img src="../assets/configurateur_lettre_Y.png" alt="Image non chargée">
+            <br>
+            <br>
+            Le texte peut-être en <b>gras</b>, <i>italique</i>, <u>souligné</u>, ou autre...
+          </p>
+          <p>
+            Ceci est un 2nd paragraphe.
+          </p>
+        </div>  
+-->
+
+        <div id="full-tool-area">
+            <div id="tool-panel">
+                <div id="tool-panel-menu" style="background: #fff;"> </div>
+                <div id="tool-panel-accesoires-selection"  style="padding-top:20px;position:absolute">
+					<span  class="d-flex  flex-wrap">
+<!-- LISTE DES DOSSIERS -->
+                  <script>
+                    var dossiersUniques = [];
+                    for(i=0;i<dossiers.length;i++){
+                      if (!dossiersUniques.includes(dossiers[i].nom_FR)) {
+                        document.write("<nav style='width:145px;max-width:145px;cursor:pointer;text-align:center;padding:10px 5px;margin:0px 0px;margin-bottom:5px;position:relative;overflow:hidden' onclick='dossier(this.id)' id='"+i+"' class='dossier'> <p>"+dossiers[i].nom_FR+"</p> <img style='width:"+dossiers[i].taille*1.3+"mm;height:auto;' draggable='false' src='"+dossiers[i].photo+"'> </nav>"); 
+                        dossiersUniques.push(dossiers[i].nom_FR)
+                        if (dossiers[i].profondeur != '0') {
+                          $("#"+i).hide()
+                          dossiers[i].visible='0'
+                        }
+                      }
+                    }
+                  </script>
+<!-- FIN LISTE DES DOSSIERS -->    
+<!-- LISTE DES ACCESSOIRES -->         
+                  <nav id="selection-retour" style="margin:-15px 0 0 5px;cursor:pointer;display:none;width:100%;max-height:22px;position:absolute">
+                    <svg style="margin:-3px 0 0 0px" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16">
+                      <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+                    </svg>
+                    <span style="margin:0px 0 0 -5px">Retour</span>
+                  </nav>
+               		<!-- Boucle Accessoires -->
+					<script>
+                      for(i=0;i<articles.length;i++){
+                          document.write("<div style='width:147.394px;height:147.394px;' onmouseover='get_image_click(this.id)' id='acc"+(i+1)+"'> <p> <span>"+articles[i].prix+"€</span> </p>")
+                          for(j=0;j<50;j++){
+                            document.write(" <img draggable='true' onmouseover='get_image(this.id)' id='drag-acc-"+j+"' class='"+articles[i].prix+"'  src='' style='position:absolute;z-index: 100;margin-top:"+articles[i].margin+"px' >")
+                            $("#drag-acc-"+j+"").attr("id","drag-"+$("#drag-acc-"+j+"").parent().attr("id")+"-"+j+"");
+                           }
+                      document.write("</div>");
+                        }
+                      </script>
+<!-- FIN DE LA LISTE DES ACCESSOIRES --> 
+                  </span>
+
+                </div>
+                
+                <div id="tool-panel-full-price" style="display: none;">
+                  <p>
+                    Prix total : <span>0</span>€
+                  </p>
+                </div>
+                <div id="tool-panel-board-area">
+                    <div id="board-drag" > </div>
+                    <div id="tool-panel-board">
+                      <div id="all-losange" class="d-flex align-content-stretch flex-wrap">
+                        </div>
+                        <div id="tool-panel-board-border"> </div>
+                            
+                        <div id="tool-panel-board-all-cases">
+                            <script>
+                                let board_x=31;
+                                let board_y=15;
+                                function draw_square_rect(){
+                                    var $newdiv1 = ( "<div id='tool-panel-board-all-cases-line'> </div>" )
+                                    var $newdiv2 = ( "<div id='tool-panel-board-case'> <div> </div> <div> </div> <div> </div> <div> </div> </div>" )
+                                    $("#tool-panel-board-all-cases").children().remove();
+                                    for(i=0;i<board_y-1;i++){
+                                        $("#tool-panel-board-all-cases").append($newdiv1)
+                                        for(j=0;j<board_x-1;j++){
+                                            $("#tool-panel-board-all-cases #tool-panel-board-all-cases-line").eq(i).append($newdiv2)  
+                                            }
+                                        }
+                                    }
+                                draw_square_rect();
+                            </script>
+                        </div>
+                    </div>
+                </div>
+<!-- Modification du texte présent dans le configurateur à cet endroit. -->
+
+  <div id="tool-panel-details-text" style="font-family: 'Assistant', sans-serif; font-weight: 400;">
+  <p id="maxSizeText" style="font-size: 18px; margin-bottom: 2px">
+    La taille maximale est de <span id="maxWidth"></span> x <span id="maxHeight"></span> cm<br>
+    <a href="https://get-quark.com/pages/contactez-nous"target="_blank">Contactez-nous</a> pour des dimensions supérieures<br>
+  </p>
+</div>
+</div>
+
+<script>
+document.getElementById('maxWidth').textContent = taille_largeur_max_en_cm;
+document.getElementById('maxHeight').textContent = taille_hauteur_max_en_cm;
+</script>
+
+          <!-- Page 2 -->
+          <div id="page2" style="display:none;position: absolute;width:100%">
+            <div id="page2-retour"style="position:absolute;cursor:pointer;margin-left:10px;">
+            <svg style="margin-top:-3px;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+            </svg>
+              <span>Retour</span> </div>
+            <div style="width:100%;justify-content:center;margin: 0 auto;display:flex;">
+              <h1 style="position:absolute;text-align:center;margin-top:30px;">Étape 2 : Choisissez votre texture</h1>
+            <div id="page2-option1" class="animate__animated animate__bounceInLeft">
+              <img src="https://i.ibb.co/FDcCmTc/lisse.jpg" draggable="false"  style="width:85%;border-radius:5px;margin-top:45px;cursor:pointer">
+              <p style="font-size:25px;color:black;font-weight:500;margin-top:20px;">Panneau lisse (+0€)</p>
+              <button>Choisir Cette Option</button>
+            </div>
+            <div id="page2-option2" class="animate__animated animate__bounceInRight" >
+            	<img src="https://i.ibb.co/hdXfd41/damier.jpg" draggable="false" style="width:85%;border-radius:5px;margin-top:45px;cursor:pointer">
+              <p style="font-size:25px;color:black;font-weight:500;margin-top:20px;">Gravure à motif losanges (+40€)</p>
+              <button>Choisir Cette Option</button> 	
+            </div>
+            </div>
+          </div>
+
+          <!-- Page 3 -->
+          <div id="page3" style="display:none;position: absolute;width:100%;">
+            <div id="page3-retour"style="position:absolute;cursor:pointer;margin-left:10px;">
+            <svg style="margin-top:-3px;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+            </svg>
+             <span>Retour</span> </div>
+            <div style="width:100%;justify-content:center;margin: 0 auto;display:flex;">
+              <h1 style="position:absolute;text-align:center;margin-top:30px;">Étape 3 : Choisissez vos arêtes</h1>
+            <div id="page3-option1" class="animate__animated animate__bounceInLeft">
+              <img src="https://i.ibb.co/Bsqh2zT/coins-brut-V2.jpg" draggable="false"  style="width:85%;border-radius:5px;margin-top:45px;cursor:pointer">
+              <p style="font-size:25px;color:black;font-weight:500;margin-top:20px;">Arêtes entières (+0€)</p>
+              <button>Choisir Cette Option</button>
+            </div>
+            <div id="page3-option2" class="animate__animated animate__bounceInRight" >
+            	<img src="https://i.ibb.co/HGgyPG1/coins-biseautes-V2.jpg" draggable="false" style="width:85%;border-radius:5px;margin-top:45px;cursor:pointer">
+              <p style="font-size:25px;color:black;font-weight:500;margin-top:20px;">Arêtes biseautées (+7€)</p>
+              <button>Choisir Cette Option</button> 	
+            </div>
+            </div>
+          </div>
+
+          <!-- Page 4 -->
+          <div id="page4" style="display:none;position: absolute;width:100%;">
+            <div id="page4-retour"style="position:absolute;cursor:pointer;margin-left:10px;">
+            <svg style="margin-top:-3px;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+            </svg>
+             <span>Retour</span> </div>
+            <div style="width:100%;justify-content:center;margin: 0 auto;display:flex;">
+              <h1 style="position:absolute;text-align:center;margin-top:110px;" class="animate__animated animate__bounceInRight">Étape 4 : Souhaitez vous ajouter un pegboard supplémentaire ?</h1>
+              <img src="https://i.ibb.co/rfx6WGK/Ajout-1-copy.png" class="animate__animated animate__bounceInLeft" draggable="false" style="width:900px;height:auto;border-radius:5px;margin-top:160px;">
+          
+            </div>
+            <div id="page4-rep"  style="display:flex;margin:0 auto;justify-content:center;">
+              	<button style="min-width:90px;border:2px solid black;padding-bottom:1px" class="animate__animated animate__bounceInLeft">Oui, retourner au configurateur</button> 
+                <button style="min-width:90px;border:2px solid black;padding-bottom:1px" class="animate__animated animate__bounceInRight">Non, aller au panier</button> 
+              </div>
+          </div>
+          
+          <!-- Menu -->
+            <div id="tool-menu">
+<!--
+              <div id="tool-tuto">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-question-circle" viewBox="0 0 16 16">
+                  <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                  <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/>
+                </svg>
+                <i class="bi bi-question-circle"></i>
+              </div>
+-->
+                <a title="Reinitialiser" id="tool-reset">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-arrow-repeat" viewBox="0 0 16 16">
+                        <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/>
+                        <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/>
+                      </svg>
+                    </a>
+                <div id="tool-shapes">
+<!-- Cache la forme carré dans le menu de configuration 
+                    <a title="Carre" id="tool-shape__1"> </a> -->
+                    <a title="Rectangle" id="tool-shape__2"> </a>
+                    <a title="Cercle" id="tool-shape__3"> </a>
+                </div>
+<!-- Cache l'option de gravure dans la barre de configuration
+                <div id="board-design">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-suit-diamond-fill" viewBox="0 0 16 16">
+                        <path d="M2.45 7.4L7.2 1.067a1 1 0 0 1 1.6 0L13.55 7.4a1 1 0 0 1 0 1.2L8.8 14.933a1 1 0 0 1-1.6 0L2.45 8.6a1 1 0 0 1 0-1.2z"/>
+                      </svg>
+                </div>
+-->
+                <div id="tool-dimensions">
+<!--
+                  <form  id="square-width">
+                    <input onchange="square()" title="Longueur/Hauteur" type="number" min="4" max="33" required value="15">
+                    <INPUT style="display: none;"> </INPUT>
+                  </form>
+-->
+                  <form id="rectangle-width">
+                    <input onchange="rectangle()" title="Longueur" required type="number" min="2" max="{{ largeur_max_pegboard }}" value="31">
+                    <input onchange="rectangle()" title="Hauteur"  required type="number" min="2" max="{{ hauteur_max_pegboard }}" value="15">
+                  </form>
+                  <form id="circle-diam">
+                    <input onchange="circle()" title="Diametre" type="number" min="4" max="36" required value="15">
+                  </form> 
+                </div>
+                <div id="tool-indivative-board-size">
+                    <div id="tool-indivative-board-size-cm">
+                        <p> <span>48</span> x <span>48</span> cm</p>
+                    </div>
+                    <div id="tool-indivative-board-size-inch">
+                        <p> <span>18.9</span> x <span>18.9</span> in</p>
+                    </div>
+                </div>
+                <div id="tool-colors">
+                  
+    <select id="color-selector" name="color-selector" onchange="change_bg(this.value)">
+        <!-- Options will be populated here by JavaScript -->
+      </select>
+                    <script>
+                    // Select the dropdown list
+                    var dropdown = document.getElementById("color-selector");
+                    
+                    // Iterate over the color array and add each color as an option
+                    colors_.forEach(function(color) {
+                      // Create a new option element
+                      var option = document.createElement("option");
+                    
+                      // Set the value of the option to the color
+                      console.log(color.name)
+                      option.value = color.color;
+                      option.text = color.name;
+                    
+                      // Add the option to the dropdown list
+                      dropdown.add(option);
+                    });
+                  </script>
+                </div>
+                
+<!--
+                <div id="board-design">
+                  <label for="gravureCheckbox">Gravure</label>
+                  <input type="checkbox" id="gravureCheckbox" name="boardDesignCheckboxes">
+
+                  <label for="biseauCheckbox">Biseau</label>
+                  <input type="checkbox" id="biseauCheckbox" name="boardDesignCheckboxes">
+                </div>
+-->
+
+<!-- BOUTON CHANGEMENT DE LANGUES :
+                <div id="tool-language">
+                    <p> <span title="Français">FR </span>/ <span title="English">ENG</span> </p>
+                </div> -->
+                          
+<!-- BOUTON CHANGEMENT DE DEVISE
+                <div id="tool-devise">
+                    <p> <span title="Euros">€ </span>/ <span title="Dollars">$</span> </p>
+                </div> -->
+                          
+  <!--BOUTON PLEIN ÉCRAN
+                <div id="tool-panel-full-screen" title="Plein ecran">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-fullscreen" viewBox="0 0 16 16">
+                      <path d="M1.5 1a.5.5 0 0 0-.5.5v4a.5.5 0 0 1-1 0v-4A1.5 1.5 0 0 1 1.5 0h4a.5.5 0 0 1 0 1h-4zM10 .5a.5.5 0 0 1 .5-.5h4A1.5 1.5 0 0 1 16 1.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 1-.5-.5zM.5 10a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5 1.5 0 0 1 0 14.5v-4a.5.5 0 0 1 .5-.5zm15 0a.5.5 0 0 1 .5.5v4a1.5 1.5 0 0 1-1.5 1.5h-4a.5.5 0 0 1 0-1h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 .5-.5z"/>
+                  </svg>
+        	    </div> -->
+              
+                <div id="tool-full-price" >
+                    <p>Total : <span style="color:white;cursor:default">0</span>€</p>
+                  <div id="page1-next">
+                          Acheter
+                    </div>
+                  <div id="page2-next">
+                          Suivant
+                    </div>
+                    <div id="tool-buy">
+                          Acheter
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+      
+                  <!-- Drag API -->
+  <script>
+    $(document).ready(function($) {
+	!function(t){"function"==typeof define&&define.amd?define(["jquery"],t):t(jQuery)}(function(b){b.ui=b.ui||{};b.ui.version="1.12.1";var o,s=0,a=Array.prototype.slice;b.cleanData=(o=b.cleanData,function(t){for(var e,s,i=0;null!=(s=t[i]);i++)try{(e=b._data(s,"events"))&&e.remove&&b(s).triggerHandler("remove")}catch(t){}o(t)}),b.widget=function(t,s,e){var i,o,n,r={},a=t.split(".")[0],l=a+"-"+(t=t.split(".")[1]);return e||(e=s,s=b.Widget),b.isArray(e)&&(e=b.extend.apply(null,[{}].concat(e))),b.expr[":"][l.toLowerCase()]=function(t){return!!b.data(t,l)},b[a]=b[a]||{},i=b[a][t],o=b[a][t]=function(t,e){if(!this._createWidget)return new o(t,e);arguments.length&&this._createWidget(t,e)},b.extend(o,i,{version:e.version,_proto:b.extend({},e),_childConstructors:[]}),(n=new s).options=b.widget.extend({},n.options),b.each(e,function(e,i){function o(){return s.prototype[e].apply(this,arguments)}function n(t){return s.prototype[e].apply(this,t)}b.isFunction(i)?r[e]=function(){var t,e=this._super,s=this._superApply;return this._super=o,this._superApply=n,t=i.apply(this,arguments),this._super=e,this._superApply=s,t}:r[e]=i}),o.prototype=b.widget.extend(n,{widgetEventPrefix:i&&n.widgetEventPrefix||t},r,{constructor:o,namespace:a,widgetName:t,widgetFullName:l}),i?(b.each(i._childConstructors,function(t,e){var s=e.prototype;b.widget(s.namespace+"."+s.widgetName,o,e._proto)}),delete i._childConstructors):s._childConstructors.push(o),b.widget.bridge(t,o),o},b.widget.extend=function(t){for(var e,s,i=a.call(arguments,1),o=0,n=i.length;o<n;o++)for(e in i[o])s=i[o][e],i[o].hasOwnProperty(e)&&void 0!==s&&(b.isPlainObject(s)?t[e]=b.isPlainObject(t[e])?b.widget.extend({},t[e],s):b.widget.extend({},s):t[e]=s);return t},b.widget.bridge=function(n,e){var r=e.prototype.widgetFullName||n;b.fn[n]=function(s){var t="string"==typeof s,i=a.call(arguments,1),o=this;return t?this.length||"instance"!==s?this.each(function(){var t,e=b.data(this,r);return"instance"===s?(o=e,!1):e?b.isFunction(e[s])&&"_"!==s.charAt(0)?(t=e[s].apply(e,i))!==e&&void 0!==t?(o=t&&t.jquery?o.pushStack(t.get()):t,!1):void 0:b.error("no such method '"+s+"' for "+n+" widget instance"):b.error("cannot call methods on "+n+" prior to initialization; attempted to call method '"+s+"'")}):o=void 0:(i.length&&(s=b.widget.extend.apply(null,[s].concat(i))),this.each(function(){var t=b.data(this,r);t?(t.option(s||{}),t._init&&t._init()):b.data(this,r,new e(s,this))})),o}},b.Widget=function(){},b.Widget._childConstructors=[],b.Widget.prototype={widgetName:"widget",widgetEventPrefix:"",defaultElement:"<div>",options:{classes:{},disabled:!1,create:null},_createWidget:function(t,e){e=b(e||this.defaultElement||this)[0],this.element=b(e),this.uuid=s++,this.eventNamespace="."+this.widgetName+this.uuid,this.bindings=b(),this.hoverable=b(),this.focusable=b(),this.classesElementLookup={},e!==this&&(b.data(e,this.widgetFullName,this),this._on(!0,this.element,{remove:function(t){t.target===e&&this.destroy()}}),this.document=b(e.style?e.ownerDocument:e.document||e),this.window=b(this.document[0].defaultView||this.document[0].parentWindow)),this.options=b.widget.extend({},this.options,this._getCreateOptions(),t),this._create(),this.options.disabled&&this._setOptionDisabled(this.options.disabled),this._trigger("create",null,this._getCreateEventData()),this._init()},_getCreateOptions:function(){return{}},_getCreateEventData:b.noop,_create:b.noop,_init:b.noop,destroy:function(){var s=this;this._destroy(),b.each(this.classesElementLookup,function(t,e){s._removeClass(e,t)}),this.element.off(this.eventNamespace).removeData(this.widgetFullName),this.widget().off(this.eventNamespace).removeAttr("aria-disabled"),this.bindings.off(this.eventNamespace)},_destroy:b.noop,widget:function(){return this.element},option:function(t,e){var s,i,o,n=t;if(0===arguments.length)return b.widget.extend({},this.options);if("string"==typeof t)if(n={},t=(s=t.split(".")).shift(),s.length){for(i=n[t]=b.widget.extend({},this.options[t]),o=0;o<s.length-1;o++)i[s[o]]=i[s[o]]||{},i=i[s[o]];if(t=s.pop(),1===arguments.length)return void 0===i[t]?null:i[t];i[t]=e}else{if(1===arguments.length)return void 0===this.options[t]?null:this.options[t];n[t]=e}return this._setOptions(n),this},_setOptions:function(t){for(var e in t)this._setOption(e,t[e]);return this},_setOption:function(t,e){return"classes"===t&&this._setOptionClasses(e),this.options[t]=e,"disabled"===t&&this._setOptionDisabled(e),this},_setOptionClasses:function(t){var e,s,i;for(e in t)i=this.classesElementLookup[e],t[e]!==this.options.classes[e]&&i&&i.length&&(s=b(i.get()),this._removeClass(i,e),s.addClass(this._classes({element:s,keys:e,classes:t,add:!0})))},_setOptionDisabled:function(t){this._toggleClass(this.widget(),this.widgetFullName+"-disabled",null,!!t),t&&(this._removeClass(this.hoverable,null,"ui-state-hover"),this._removeClass(this.focusable,null,"ui-state-focus"))},enable:function(){return this._setOptions({disabled:!1})},disable:function(){return this._setOptions({disabled:!0})},_classes:function(o){var n=[],r=this;function t(t,e){for(var s,i=0;i<t.length;i++)s=r.classesElementLookup[t[i]]||b(),s=o.add?b(b.unique(s.get().concat(o.element.get()))):b(s.not(o.element).get()),r.classesElementLookup[t[i]]=s,n.push(t[i]),e&&o.classes[t[i]]&&n.push(o.classes[t[i]])}return o=b.extend({element:this.element,classes:this.options.classes||{}},o),this._on(o.element,{remove:"_untrackClassesElement"}),o.keys&&t(o.keys.match(/\S+/g)||[],!0),o.extra&&t(o.extra.match(/\S+/g)||[]),n.join(" ")},_untrackClassesElement:function(s){var i=this;b.each(i.classesElementLookup,function(t,e){-1!==b.inArray(s.target,e)&&(i.classesElementLookup[t]=b(e.not(s.target).get()))})},_removeClass:function(t,e,s){return this._toggleClass(t,e,s,!1)},_addClass:function(t,e,s){return this._toggleClass(t,e,s,!0)},_toggleClass:function(t,e,s,i){i="boolean"==typeof i?i:s;var o="string"==typeof t||null===t,t={extra:o?e:s,keys:o?t:e,element:o?this.element:t,add:i};return t.element.toggleClass(this._classes(t),i),this},_on:function(o,n,t){var r,a=this;"boolean"!=typeof o&&(t=n,n=o,o=!1),t?(n=r=b(n),this.bindings=this.bindings.add(n)):(t=n,n=this.element,r=this.widget()),b.each(t,function(t,e){function s(){if(o||!0!==a.options.disabled&&!b(this).hasClass("ui-state-disabled"))return("string"==typeof e?a[e]:e).apply(a,arguments)}"string"!=typeof e&&(s.guid=e.guid=e.guid||s.guid||b.guid++);var i=t.match(/^([\w:-]*)\s*(.*)$/),t=i[1]+a.eventNamespace,i=i[2];i?r.on(t,i,s):n.on(t,s)})},_off:function(t,e){e=(e||"").split(" ").join(this.eventNamespace+" ")+this.eventNamespace,t.off(e).off(e),this.bindings=b(this.bindings.not(t).get()),this.focusable=b(this.focusable.not(t).get()),this.hoverable=b(this.hoverable.not(t).get())},_delay:function(t,e){var s=this;return setTimeout(function(){return("string"==typeof t?s[t]:t).apply(s,arguments)},e||0)},_hoverable:function(t){this.hoverable=this.hoverable.add(t),this._on(t,{mouseenter:function(t){this._addClass(b(t.currentTarget),null,"ui-state-hover")},mouseleave:function(t){this._removeClass(b(t.currentTarget),null,"ui-state-hover")}})},_focusable:function(t){this.focusable=this.focusable.add(t),this._on(t,{focusin:function(t){this._addClass(b(t.currentTarget),null,"ui-state-focus")},focusout:function(t){this._removeClass(b(t.currentTarget),null,"ui-state-focus")}})},_trigger:function(t,e,s){var i,o,n=this.options[t];if(s=s||{},(e=b.Event(e)).type=(t===this.widgetEventPrefix?t:this.widgetEventPrefix+t).toLowerCase(),e.target=this.element[0],o=e.originalEvent)for(i in o)i in e||(e[i]=o[i]);return this.element.trigger(e,s),!(b.isFunction(n)&&!1===n.apply(this.element[0],[e].concat(s))||e.isDefaultPrevented())}},b.each({show:"fadeIn",hide:"fadeOut"},function(n,r){b.Widget.prototype["_"+n]=function(e,t,s){var i;"string"==typeof t&&(t={effect:t});var o=t?!0!==t&&"number"!=typeof t&&t.effect||r:n;"number"==typeof(t=t||{})&&(t={duration:t}),i=!b.isEmptyObject(t),t.complete=s,t.delay&&e.delay(t.delay),i&&b.effects&&b.effects.effect[o]?e[n](t):o!==n&&e[o]?e[o](t.duration,t.easing,s):e.queue(function(t){b(this)[n](),s&&s.call(e[0]),t()})}});b.widget,b.extend(b.expr[":"],{data:b.expr.createPseudo?b.expr.createPseudo(function(e){return function(t){return!!b.data(t,e)}}):function(t,e,s){return!!b.data(t,s[3])}}),b.fn.scrollParent=function(t){var e=this.css("position"),s="absolute"===e,i=t?/(auto|scroll|hidden)/:/(auto|scroll)/,t=this.parents().filter(function(){var t=b(this);return(!s||"static"!==t.css("position"))&&i.test(t.css("overflow")+t.css("overflow-y")+t.css("overflow-x"))}).eq(0);return"fixed"!==e&&t.length?t:b(this[0].ownerDocument||document)},b.ui.ie=!!/msie [\w.]+/.exec(navigator.userAgent.toLowerCase());var n=!1;b(document).on("mouseup",function(){n=!1});b.widget("ui.mouse",{version:"1.12.1",options:{cancel:"input, textarea, button, select, option",distance:1,delay:0},_mouseInit:function(){var e=this;this.element.on("mousedown."+this.widgetName,function(t){return e._mouseDown(t)}).on("click."+this.widgetName,function(t){if(!0===b.data(t.target,e.widgetName+".preventClickEvent"))return b.removeData(t.target,e.widgetName+".preventClickEvent"),t.stopImmediatePropagation(),!1}),this.started=!1},_mouseDestroy:function(){this.element.off("."+this.widgetName),this._mouseMoveDelegate&&this.document.off("mousemove."+this.widgetName,this._mouseMoveDelegate).off("mouseup."+this.widgetName,this._mouseUpDelegate)},_mouseDown:function(t){if(!n){this._mouseMoved=!1,this._mouseStarted&&this._mouseUp(t),this._mouseDownEvent=t;var e=this,s=1===t.which,i=!("string"!=typeof this.options.cancel||!t.target.nodeName)&&b(t.target).closest(this.options.cancel).length;return s&&!i&&this._mouseCapture(t)?(this.mouseDelayMet=!this.options.delay,this.mouseDelayMet||(this._mouseDelayTimer=setTimeout(function(){e.mouseDelayMet=!0},this.options.delay)),this._mouseDistanceMet(t)&&this._mouseDelayMet(t)&&(this._mouseStarted=!1!==this._mouseStart(t),!this._mouseStarted)?(t.preventDefault(),!0):(!0===b.data(t.target,this.widgetName+".preventClickEvent")&&b.removeData(t.target,this.widgetName+".preventClickEvent"),this._mouseMoveDelegate=function(t){return e._mouseMove(t)},this._mouseUpDelegate=function(t){return e._mouseUp(t)},this.document.on("mousemove."+this.widgetName,this._mouseMoveDelegate).on("mouseup."+this.widgetName,this._mouseUpDelegate),t.preventDefault(),n=!0)):!0}},_mouseMove:function(t){if(this._mouseMoved){if(b.ui.ie&&(!document.documentMode||document.documentMode<9)&&!t.button)return this._mouseUp(t);if(!t.which)if(t.originalEvent.altKey||t.originalEvent.ctrlKey||t.originalEvent.metaKey||t.originalEvent.shiftKey)this.ignoreMissingWhich=!0;else if(!this.ignoreMissingWhich)return this._mouseUp(t)}return(t.which||t.button)&&(this._mouseMoved=!0),this._mouseStarted?(this._mouseDrag(t),t.preventDefault()):(this._mouseDistanceMet(t)&&this._mouseDelayMet(t)&&(this._mouseStarted=!1!==this._mouseStart(this._mouseDownEvent,t),this._mouseStarted?this._mouseDrag(t):this._mouseUp(t)),!this._mouseStarted)},_mouseUp:function(t){this.document.off("mousemove."+this.widgetName,this._mouseMoveDelegate).off("mouseup."+this.widgetName,this._mouseUpDelegate),this._mouseStarted&&(this._mouseStarted=!1,t.target===this._mouseDownEvent.target&&b.data(t.target,this.widgetName+".preventClickEvent",!0),this._mouseStop(t)),this._mouseDelayTimer&&(clearTimeout(this._mouseDelayTimer),delete this._mouseDelayTimer),this.ignoreMissingWhich=!1,n=!1,t.preventDefault()},_mouseDistanceMet:function(t){return Math.max(Math.abs(this._mouseDownEvent.pageX-t.pageX),Math.abs(this._mouseDownEvent.pageY-t.pageY))>=this.options.distance},_mouseDelayMet:function(){return this.mouseDelayMet},_mouseStart:function(){},_mouseDrag:function(){},_mouseStop:function(){},_mouseCapture:function(){return!0}}),b.ui.plugin={add:function(t,e,s){var i,o=b.ui[t].prototype;for(i in s)o.plugins[i]=o.plugins[i]||[],o.plugins[i].push([e,s[i]])},call:function(t,e,s,i){var o,n=t.plugins[e];if(n&&(i||t.element[0].parentNode&&11!==t.element[0].parentNode.nodeType))for(o=0;o<n.length;o++)t.options[n[o][0]]&&n[o][1].apply(t.element,s)}},b.ui.safeActiveElement=function(e){var s;try{s=e.activeElement}catch(t){s=e.body}return(s=s||e.body).nodeName||(s=e.body),s},b.ui.safeBlur=function(t){t&&"body"!==t.nodeName.toLowerCase()&&b(t).trigger("blur")};b.widget("ui.draggable",b.ui.mouse,{version:"1.12.1",widgetEventPrefix:"drag",options:{addClasses:!0,appendTo:"parent",axis:!1,connectToSortable:!1,containment:!1,cursor:"auto",cursorAt:!1,grid:!1,handle:!1,helper:"original",iframeFix:!1,opacity:!1,refreshPositions:!1,revert:!1,revertDuration:500,scope:"default",scroll:!0,scrollSensitivity:20,scrollSpeed:20,snap:!1,snapMode:"both",snapTolerance:20,stack:!1,zIndex:!1,drag:null,start:null,stop:null},_create:function(){"original"===this.options.helper&&this._setPositionRelative(),this.options.addClasses&&this._addClass("ui-draggable"),this._setHandleClassName(),this._mouseInit()},_setOption:function(t,e){this._super(t,e),"handle"===t&&(this._removeHandleClassName(),this._setHandleClassName())},_destroy:function(){(this.helper||this.element).is(".ui-draggable-dragging")?this.destroyOnClear=!0:(this._removeHandleClassName(),this._mouseDestroy())},_mouseCapture:function(t){var e=this.options;return!(this.helper||e.disabled||0<b(t.target).closest(".ui-resizable-handle").length)&&(this.handle=this._getHandle(t),!!this.handle&&(this._blurActiveElement(t),this._blockFrames(!0===e.iframeFix?"iframe":e.iframeFix),!0))},_blockFrames:function(t){this.iframeBlocks=this.document.find(t).map(function(){var t=b(this);return b("<div>").css("position","absolute").appendTo(t.parent()).outerWidth(t.outerWidth()).outerHeight(t.outerHeight()).offset(t.offset())[0]})},_unblockFrames:function(){this.iframeBlocks&&(this.iframeBlocks.remove(),delete this.iframeBlocks)},_blurActiveElement:function(t){var e=b.ui.safeActiveElement(this.document[0]);b(t.target).closest(e).length||b.ui.safeBlur(e)},_mouseStart:function(t){var e=this.options;return this.helper=this._createHelper(t),this._addClass(this.helper,"ui-draggable-dragging"),this._cacheHelperProportions(),b.ui.ddmanager&&(b.ui.ddmanager.current=this),this._cacheMargins(),this.cssPosition=this.helper.css("position"),this.scrollParent=this.helper.scrollParent(!0),this.offsetParent=this.helper.offsetParent(),this.hasFixedAncestor=0<this.helper.parents().filter(function(){return"fixed"===b(this).css("position")}).length,this.positionAbs=this.element.offset(),this._refreshOffsets(t),this.originalPosition=this.position=this._generatePosition(t,!1),this.originalPageX=t.pageX,this.originalPageY=t.pageY,e.cursorAt&&this._adjustOffsetFromHelper(e.cursorAt),this._setContainment(),!1===this._trigger("start",t)?(this._clear(),!1):(this._cacheHelperProportions(),b.ui.ddmanager&&!e.dropBehaviour&&b.ui.ddmanager.prepareOffsets(this,t),this._mouseDrag(t,!0),b.ui.ddmanager&&b.ui.ddmanager.dragStart(this,t),!0)},_refreshOffsets:function(t){this.offset={top:this.positionAbs.top-this.margins.top,left:this.positionAbs.left-this.margins.left,scroll:!1,parent:this._getParentOffset(),relative:this._getRelativeOffset()},this.offset.click={left:t.pageX-this.offset.left,top:t.pageY-this.offset.top}},_mouseDrag:function(t,e){if(this.hasFixedAncestor&&(this.offset.parent=this._getParentOffset()),this.position=this._generatePosition(t,!0),this.positionAbs=this._convertPositionTo("absolute"),!e){e=this._uiHash();if(!1===this._trigger("drag",t,e))return this._mouseUp(new b.Event("mouseup",t)),!1;this.position=e.position}return this.helper[0].style.left=this.position.left+"px",this.helper[0].style.top=this.position.top+"px",b.ui.ddmanager&&b.ui.ddmanager.drag(this,t),!1},_mouseStop:function(t){var e=this,s=!1;return b.ui.ddmanager&&!this.options.dropBehaviour&&(s=b.ui.ddmanager.drop(this,t)),this.dropped&&(s=this.dropped,this.dropped=!1),"invalid"===this.options.revert&&!s||"valid"===this.options.revert&&s||!0===this.options.revert||b.isFunction(this.options.revert)&&this.options.revert.call(this.element,s)?b(this.helper).animate(this.originalPosition,parseInt(this.options.revertDuration,10),function(){!1!==e._trigger("stop",t)&&e._clear()}):!1!==this._trigger("stop",t)&&this._clear(),!1},_mouseUp:function(t){return this._unblockFrames(),b.ui.ddmanager&&b.ui.ddmanager.dragStop(this,t),this.handleElement.is(t.target)&&this.element.trigger("focus"),b.ui.mouse.prototype._mouseUp.call(this,t)},cancel:function(){return this.helper.is(".ui-draggable-dragging")?this._mouseUp(new b.Event("mouseup",{target:this.element[0]})):this._clear(),this},_getHandle:function(t){return!this.options.handle||!!b(t.target).closest(this.element.find(this.options.handle)).length},_setHandleClassName:function(){this.handleElement=this.options.handle?this.element.find(this.options.handle):this.element,this._addClass(this.handleElement,"ui-draggable-handle")},_removeHandleClassName:function(){this._removeClass(this.handleElement,"ui-draggable-handle")},_createHelper:function(t){var e=this.options,s=b.isFunction(e.helper),t=s?b(e.helper.apply(this.element[0],[t])):"clone"===e.helper?this.element.clone().removeAttr("id"):this.element;return t.parents("body").length||t.appendTo("parent"===e.appendTo?this.element[0].parentNode:e.appendTo),s&&t[0]===this.element[0]&&this._setPositionRelative(),t[0]===this.element[0]||/(fixed|absolute)/.test(t.css("position"))||t.css("position","absolute"),t},_setPositionRelative:function(){/^(?:r|a|f)/.test(this.element.css("position"))||(this.element[0].style.position="relative")},_adjustOffsetFromHelper:function(t){"string"==typeof t&&(t=t.split(" ")),b.isArray(t)&&(t={left:+t[0],top:+t[1]||0}),"left"in t&&(this.offset.click.left=t.left+this.margins.left),"right"in t&&(this.offset.click.left=this.helperProportions.width-t.right+this.margins.left),"top"in t&&(this.offset.click.top=t.top+this.margins.top),"bottom"in t&&(this.offset.click.top=this.helperProportions.height-t.bottom+this.margins.top)},_isRootNode:function(t){return/(html|body)/i.test(t.tagName)||t===this.document[0]},_getParentOffset:function(){var t=this.offsetParent.offset(),e=this.document[0];return"absolute"===this.cssPosition&&this.scrollParent[0]!==e&&b.contains(this.scrollParent[0],this.offsetParent[0])&&(t.left+=this.scrollParent.scrollLeft(),t.top+=this.scrollParent.scrollTop()),this._isRootNode(this.offsetParent[0])&&(t={top:0,left:0}),{top:t.top+(parseInt(this.offsetParent.css("borderTopWidth"),10)||0),left:t.left+(parseInt(this.offsetParent.css("borderLeftWidth"),10)||0)}},_getRelativeOffset:function(){if("relative"!==this.cssPosition)return{top:0,left:0};var t=this.element.position(),e=this._isRootNode(this.scrollParent[0]);return{top:t.top-(parseInt(this.helper.css("top"),10)||0)+(e?0:this.scrollParent.scrollTop()),left:t.left-(parseInt(this.helper.css("left"),10)||0)+(e?0:this.scrollParent.scrollLeft())}},_cacheMargins:function(){this.margins={left:parseInt(this.element.css("marginLeft"),10)||0,top:parseInt(this.element.css("marginTop"),10)||0,right:parseInt(this.element.css("marginRight"),10)||0,bottom:parseInt(this.element.css("marginBottom"),10)||0}},_cacheHelperProportions:function(){this.helperProportions={width:this.helper.outerWidth(),height:this.helper.outerHeight()}},_setContainment:function(){var t,e,s,i=this.options,o=this.document[0];this.relativeContainer=null,i.containment?"window"!==i.containment?"document"!==i.containment?i.containment.constructor!==Array?("parent"===i.containment&&(i.containment=this.helper[0].parentNode),(s=(e=b(i.containment))[0])&&(t=/(scroll|auto)/.test(e.css("overflow")),this.containment=[(parseInt(e.css("borderLeftWidth"),10)||0)+(parseInt(e.css("paddingLeft"),10)||0),(parseInt(e.css("borderTopWidth"),10)||0)+(parseInt(e.css("paddingTop"),10)||0),(t?Math.max(s.scrollWidth,s.offsetWidth):s.offsetWidth)-(parseInt(e.css("borderRightWidth"),10)||0)-(parseInt(e.css("paddingRight"),10)||0)-this.helperProportions.width-this.margins.left-this.margins.right,(t?Math.max(s.scrollHeight,s.offsetHeight):s.offsetHeight)-(parseInt(e.css("borderBottomWidth"),10)||0)-(parseInt(e.css("paddingBottom"),10)||0)-this.helperProportions.height-this.margins.top-this.margins.bottom],this.relativeContainer=e)):this.containment=i.containment:this.containment=[0,0,b(o).width()-this.helperProportions.width-this.margins.left,(b(o).height()||o.body.parentNode.scrollHeight)-this.helperProportions.height-this.margins.top]:this.containment=[b(window).scrollLeft()-this.offset.relative.left-this.offset.parent.left,b(window).scrollTop()-this.offset.relative.top-this.offset.parent.top,b(window).scrollLeft()+b(window).width()-this.helperProportions.width-this.margins.left,b(window).scrollTop()+(b(window).height()||o.body.parentNode.scrollHeight)-this.helperProportions.height-this.margins.top]:this.containment=null},_convertPositionTo:function(t,e){e=e||this.position;var s="absolute"===t?1:-1,t=this._isRootNode(this.scrollParent[0]);return{top:e.top+this.offset.relative.top*s+this.offset.parent.top*s-("fixed"===this.cssPosition?-this.offset.scroll.top:t?0:this.offset.scroll.top)*s,left:e.left+this.offset.relative.left*s+this.offset.parent.left*s-("fixed"===this.cssPosition?-this.offset.scroll.left:t?0:this.offset.scroll.left)*s}},_generatePosition:function(t,e){var s,i=this.options,o=this._isRootNode(this.scrollParent[0]),n=t.pageX,r=t.pageY;return o&&this.offset.scroll||(this.offset.scroll={top:this.scrollParent.scrollTop(),left:this.scrollParent.scrollLeft()}),e&&(this.containment&&(s=this.relativeContainer?(s=this.relativeContainer.offset(),[this.containment[0]+s.left,this.containment[1]+s.top,this.containment[2]+s.left,this.containment[3]+s.top]):this.containment,t.pageX-this.offset.click.left<s[0]&&(n=s[0]+this.offset.click.left),t.pageY-this.offset.click.top<s[1]&&(r=s[1]+this.offset.click.top),t.pageX-this.offset.click.left>s[2]&&(n=s[2]+this.offset.click.left),t.pageY-this.offset.click.top>s[3]&&(r=s[3]+this.offset.click.top)),i.grid&&(t=i.grid[1]?this.originalPageY+Math.round((r-this.originalPageY)/i.grid[1])*i.grid[1]:this.originalPageY,r=!s||t-this.offset.click.top>=s[1]||t-this.offset.click.top>s[3]?t:t-this.offset.click.top>=s[1]?t-i.grid[1]:t+i.grid[1],t=i.grid[0]?this.originalPageX+Math.round((n-this.originalPageX)/i.grid[0])*i.grid[0]:this.originalPageX,n=!s||t-this.offset.click.left>=s[0]||t-this.offset.click.left>s[2]?t:t-this.offset.click.left>=s[0]?t-i.grid[0]:t+i.grid[0]),"y"===i.axis&&(n=this.originalPageX),"x"===i.axis&&(r=this.originalPageY)),{top:r-this.offset.click.top-this.offset.relative.top-this.offset.parent.top+("fixed"===this.cssPosition?-this.offset.scroll.top:o?0:this.offset.scroll.top),left:n-this.offset.click.left-this.offset.relative.left-this.offset.parent.left+("fixed"===this.cssPosition?-this.offset.scroll.left:o?0:this.offset.scroll.left)}},_clear:function(){this._removeClass(this.helper,"ui-draggable-dragging"),this.helper[0]===this.element[0]||this.cancelHelperRemoval||this.helper.remove(),this.helper=null,this.cancelHelperRemoval=!1,this.destroyOnClear&&this.destroy()},_trigger:function(t,e,s){return s=s||this._uiHash(),b.ui.plugin.call(this,t,[e,s,this],!0),/^(drag|start|stop)/.test(t)&&(this.positionAbs=this._convertPositionTo("absolute"),s.offset=this.positionAbs),b.Widget.prototype._trigger.call(this,t,e,s)},plugins:{},_uiHash:function(){return{helper:this.helper,position:this.position,originalPosition:this.originalPosition,offset:this.positionAbs}}}),b.ui.plugin.add("draggable","connectToSortable",{start:function(e,t,s){var i=b.extend({},t,{item:s.element});s.sortables=[],b(s.options.connectToSortable).each(function(){var t=b(this).sortable("instance");t&&!t.options.disabled&&(s.sortables.push(t),t.refreshPositions(),t._trigger("activate",e,i))})},stop:function(e,t,s){var i=b.extend({},t,{item:s.element});s.cancelHelperRemoval=!1,b.each(s.sortables,function(){var t=this;t.isOver?(t.isOver=0,s.cancelHelperRemoval=!0,t.cancelHelperRemoval=!1,t._storedCSS={position:t.placeholder.css("position"),top:t.placeholder.css("top"),left:t.placeholder.css("left")},t._mouseStop(e),t.options.helper=t.options._helper):(t.cancelHelperRemoval=!0,t._trigger("deactivate",e,i))})},drag:function(s,i,o){b.each(o.sortables,function(){var t=!1,e=this;e.positionAbs=o.positionAbs,e.helperProportions=o.helperProportions,e.offset.click=o.offset.click,e._intersectsWith(e.containerCache)&&(t=!0,b.each(o.sortables,function(){return this.positionAbs=o.positionAbs,this.helperProportions=o.helperProportions,this.offset.click=o.offset.click,this!==e&&this._intersectsWith(this.containerCache)&&b.contains(e.element[0],this.element[0])&&(t=!1),t})),t?(e.isOver||(e.isOver=1,o._parent=i.helper.parent(),e.currentItem=i.helper.appendTo(e.element).data("ui-sortable-item",!0),e.options._helper=e.options.helper,e.options.helper=function(){return i.helper[0]},s.target=e.currentItem[0],e._mouseCapture(s,!0),e._mouseStart(s,!0,!0),e.offset.click.top=o.offset.click.top,e.offset.click.left=o.offset.click.left,e.offset.parent.left-=o.offset.parent.left-e.offset.parent.left,e.offset.parent.top-=o.offset.parent.top-e.offset.parent.top,o._trigger("toSortable",s),o.dropped=e.element,b.each(o.sortables,function(){this.refreshPositions()}),o.currentItem=o.element,e.fromOutside=o),e.currentItem&&(e._mouseDrag(s),i.position=e.position)):e.isOver&&(e.isOver=0,e.cancelHelperRemoval=!0,e.options._revert=e.options.revert,e.options.revert=!1,e._trigger("out",s,e._uiHash(e)),e._mouseStop(s,!0),e.options.revert=e.options._revert,e.options.helper=e.options._helper,e.placeholder&&e.placeholder.remove(),i.helper.appendTo(o._parent),o._refreshOffsets(s),i.position=o._generatePosition(s,!0),o._trigger("fromSortable",s),o.dropped=!1,b.each(o.sortables,function(){this.refreshPositions()}))})}}),b.ui.plugin.add("draggable","cursor",{start:function(t,e,s){var i=b("body"),s=s.options;i.css("cursor")&&(s._cursor=i.css("cursor")),i.css("cursor",s.cursor)},stop:function(t,e,s){s=s.options;s._cursor&&b("body").css("cursor",s._cursor)}}),b.ui.plugin.add("draggable","opacity",{start:function(t,e,s){e=b(e.helper),s=s.options;e.css("opacity")&&(s._opacity=e.css("opacity")),e.css("opacity",s.opacity)},stop:function(t,e,s){s=s.options;s._opacity&&b(e.helper).css("opacity",s._opacity)}}),b.ui.plugin.add("draggable","scroll",{start:function(t,e,s){s.scrollParentNotHidden||(s.scrollParentNotHidden=s.helper.scrollParent(!1)),s.scrollParentNotHidden[0]!==s.document[0]&&"HTML"!==s.scrollParentNotHidden[0].tagName&&(s.overflowOffset=s.scrollParentNotHidden.offset())},drag:function(t,e,s){var i=s.options,o=!1,n=s.scrollParentNotHidden[0],r=s.document[0];n!==r&&"HTML"!==n.tagName?(i.axis&&"x"===i.axis||(s.overflowOffset.top+n.offsetHeight-t.pageY<i.scrollSensitivity?n.scrollTop=o=n.scrollTop+i.scrollSpeed:t.pageY-s.overflowOffset.top<i.scrollSensitivity&&(n.scrollTop=o=n.scrollTop-i.scrollSpeed)),i.axis&&"y"===i.axis||(s.overflowOffset.left+n.offsetWidth-t.pageX<i.scrollSensitivity?n.scrollLeft=o=n.scrollLeft+i.scrollSpeed:t.pageX-s.overflowOffset.left<i.scrollSensitivity&&(n.scrollLeft=o=n.scrollLeft-i.scrollSpeed))):(i.axis&&"x"===i.axis||(t.pageY-b(r).scrollTop()<i.scrollSensitivity?o=b(r).scrollTop(b(r).scrollTop()-i.scrollSpeed):b(window).height()-(t.pageY-b(r).scrollTop())<i.scrollSensitivity&&(o=b(r).scrollTop(b(r).scrollTop()+i.scrollSpeed))),i.axis&&"y"===i.axis||(t.pageX-b(r).scrollLeft()<i.scrollSensitivity?o=b(r).scrollLeft(b(r).scrollLeft()-i.scrollSpeed):b(window).width()-(t.pageX-b(r).scrollLeft())<i.scrollSensitivity&&(o=b(r).scrollLeft(b(r).scrollLeft()+i.scrollSpeed)))),!1!==o&&b.ui.ddmanager&&!i.dropBehaviour&&b.ui.ddmanager.prepareOffsets(s,t)}}),b.ui.plugin.add("draggable","snap",{start:function(t,e,s){var i=s.options;s.snapElements=[],b(i.snap.constructor!==String?i.snap.items||":data(ui-draggable)":i.snap).each(function(){var t=b(this),e=t.offset();this!==s.element[0]&&s.snapElements.push({item:this,width:t.outerWidth(),height:t.outerHeight(),top:e.top,left:e.left})})},drag:function(t,e,s){for(var i,o,n,r,a,l,h,p,c,u=s.options,f=u.snapTolerance,d=e.offset.left,g=d+s.helperProportions.width,m=e.offset.top,v=m+s.helperProportions.height,_=s.snapElements.length-1;0<=_;_--)l=(a=s.snapElements[_].left-s.margins.left)+s.snapElements[_].width,p=(h=s.snapElements[_].top-s.margins.top)+s.snapElements[_].height,g<a-f||l+f<d||v<h-f||p+f<m||!b.contains(s.snapElements[_].item.ownerDocument,s.snapElements[_].item)?(s.snapElements[_].snapping&&s.options.snap.release&&s.options.snap.release.call(s.element,t,b.extend(s._uiHash(),{snapItem:s.snapElements[_].item})),s.snapElements[_].snapping=!1):("inner"!==u.snapMode&&(i=Math.abs(h-v)<=f,o=Math.abs(p-m)<=f,n=Math.abs(a-g)<=f,r=Math.abs(l-d)<=f,i&&(e.position.top=s._convertPositionTo("relative",{top:h-s.helperProportions.height,left:0}).top),o&&(e.position.top=s._convertPositionTo("relative",{top:p,left:0}).top),n&&(e.position.left=s._convertPositionTo("relative",{top:0,left:a-s.helperProportions.width}).left),r&&(e.position.left=s._convertPositionTo("relative",{top:0,left:l}).left)),c=i||o||n||r,"outer"!==u.snapMode&&(i=Math.abs(h-m)<=f,o=Math.abs(p-v)<=f,n=Math.abs(a-d)<=f,r=Math.abs(l-g)<=f,i&&(e.position.top=s._convertPositionTo("relative",{top:h,left:0}).top),o&&(e.position.top=s._convertPositionTo("relative",{top:p-s.helperProportions.height,left:0}).top),n&&(e.position.left=s._convertPositionTo("relative",{top:0,left:a}).left),r&&(e.position.left=s._convertPositionTo("relative",{top:0,left:l-s.helperProportions.width}).left)),!s.snapElements[_].snapping&&(i||o||n||r||c)&&s.options.snap.snap&&s.options.snap.snap.call(s.element,t,b.extend(s._uiHash(),{snapItem:s.snapElements[_].item})),s.snapElements[_].snapping=i||o||n||r||c)}}),b.ui.plugin.add("draggable","stack",{start:function(t,e,s){var i,s=s.options,s=b.makeArray(b(s.stack)).sort(function(t,e){return(parseInt(b(t).css("zIndex"),10)||0)-(parseInt(b(e).css("zIndex"),10)||0)});s.length&&(i=parseInt(b(s[0]).css("zIndex"),10)||0,b(s).each(function(t){b(this).css("zIndex",i+t)}),this.css("zIndex",i+s.length))}}),b.ui.plugin.add("draggable","zIndex",{start:function(t,e,s){e=b(e.helper),s=s.options;e.css("zIndex")&&(s._zIndex=e.css("zIndex")),e.css("zIndex",s.zIndex)},stop:function(t,e,s){s=s.options;s._zIndex&&b(e.helper).css("zIndex",s._zIndex)}});b.ui.draggable;b.widget("ui.droppable",{version:"1.12.1",widgetEventPrefix:"drop",options:{accept:"*",addClasses:!0,greedy:!1,scope:"default",tolerance:"intersect",activate:null,deactivate:null,drop:null,out:null,over:null},_create:function(){var t,e=this.options,s=e.accept;this.isover=!1,this.isout=!0,this.accept=b.isFunction(s)?s:function(t){return t.is(s)},this.proportions=function(){if(!arguments.length)return t||(t={width:this.element[0].offsetWidth,height:this.element[0].offsetHeight});t=arguments[0]},this._addToManager(e.scope),e.addClasses&&this._addClass("ui-droppable")},_addToManager:function(t){b.ui.ddmanager.droppables[t]=b.ui.ddmanager.droppables[t]||[],b.ui.ddmanager.droppables[t].push(this)},_splice:function(t){for(var e=0;e<t.length;e++)t[e]===this&&t.splice(e,1)},_destroy:function(){var t=b.ui.ddmanager.droppables[this.options.scope];this._splice(t)},_setOption:function(t,e){var s;"accept"===t?this.accept=b.isFunction(e)?e:function(t){return t.is(e)}:"scope"===t&&(s=b.ui.ddmanager.droppables[this.options.scope],this._splice(s),this._addToManager(e)),this._super(t,e)},_activate:function(t){var e=b.ui.ddmanager.current;this._addActiveClass(),e&&this._trigger("activate",t,this.ui(e))},_deactivate:function(t){var e=b.ui.ddmanager.current;this._removeActiveClass(),e&&this._trigger("deactivate",t,this.ui(e))},_over:function(t){var e=b.ui.ddmanager.current;e&&(e.currentItem||e.element)[0]!==this.element[0]&&this.accept.call(this.element[0],e.currentItem||e.element)&&(this._addHoverClass(),this._trigger("over",t,this.ui(e)))},_out:function(t){var e=b.ui.ddmanager.current;e&&(e.currentItem||e.element)[0]!==this.element[0]&&this.accept.call(this.element[0],e.currentItem||e.element)&&(this._removeHoverClass(),this._trigger("out",t,this.ui(e)))},_drop:function(e,t){var s=t||b.ui.ddmanager.current,i=!1;return!(!s||(s.currentItem||s.element)[0]===this.element[0])&&(this.element.find(":data(ui-droppable)").not(".ui-draggable-dragging").each(function(){var t=b(this).droppable("instance");if(t.options.greedy&&!t.options.disabled&&t.options.scope===s.options.scope&&t.accept.call(t.element[0],s.currentItem||s.element)&&r(s,b.extend(t,{offset:t.element.offset()}),t.options.tolerance,e))return!(i=!0)}),!i&&(!!this.accept.call(this.element[0],s.currentItem||s.element)&&(this._removeActiveClass(),this._removeHoverClass(),this._trigger("drop",e,this.ui(s)),this.element)))},ui:function(t){return{draggable:t.currentItem||t.element,helper:t.helper,position:t.position,offset:t.positionAbs}},_addHoverClass:function(){this._addClass("ui-droppable-hover")},_removeHoverClass:function(){this._removeClass("ui-droppable-hover")},_addActiveClass:function(){this._addClass("ui-droppable-active")},_removeActiveClass:function(){this._removeClass("ui-droppable-active")}});var r=b.ui.intersect=function(t,e,s,i){if(!e.offset)return!1;var o=(t.positionAbs||t.position.absolute).left+t.margins.left,n=(t.positionAbs||t.position.absolute).top+t.margins.top,r=o+t.helperProportions.width,a=n+t.helperProportions.height,l=e.offset.left,h=e.offset.top,p=l+e.proportions().width,c=h+e.proportions().height;switch(s){case"fit":return l<=o&&r<=p&&h<=n&&a<=c;case"intersect":return l<o+t.helperProportions.width/2&&r-t.helperProportions.width/2<p&&h<n+t.helperProportions.height/2&&a-t.helperProportions.height/2<c;case"pointer":return u(i.pageY,h,e.proportions().height)&&u(i.pageX,l,e.proportions().width);case"touch":return(h<=n&&n<=c||h<=a&&a<=c||n<h&&c<a)&&(l<=o&&o<=p||l<=r&&r<=p||o<l&&p<r);default:return!1}};function u(t,e,s){return e<=t&&t<e+s}!(b.ui.ddmanager={current:null,droppables:{default:[]},prepareOffsets:function(t,e){var s,i,o=b.ui.ddmanager.droppables[t.options.scope]||[],n=e?e.type:null,r=(t.currentItem||t.element).find(":data(ui-droppable)").addBack();t:for(s=0;s<o.length;s++)if(!(o[s].options.disabled||t&&!o[s].accept.call(o[s].element[0],t.currentItem||t.element))){for(i=0;i<r.length;i++)if(r[i]===o[s].element[0]){o[s].proportions().height=0;continue t}o[s].visible="none"!==o[s].element.css("display"),o[s].visible&&("mousedown"===n&&o[s]._activate.call(o[s],e),o[s].offset=o[s].element.offset(),o[s].proportions({width:o[s].element[0].offsetWidth,height:o[s].element[0].offsetHeight}))}},drop:function(t,e){var s=!1;return b.each((b.ui.ddmanager.droppables[t.options.scope]||[]).slice(),function(){this.options&&(!this.options.disabled&&this.visible&&r(t,this,this.options.tolerance,e)&&(s=this._drop.call(this,e)||s),!this.options.disabled&&this.visible&&this.accept.call(this.element[0],t.currentItem||t.element)&&(this.isout=!0,this.isover=!1,this._deactivate.call(this,e)))}),s},dragStart:function(t,e){t.element.parentsUntil("body").on("scroll.droppable",function(){t.options.refreshPositions||b.ui.ddmanager.prepareOffsets(t,e)})},drag:function(o,n){o.options.refreshPositions&&b.ui.ddmanager.prepareOffsets(o,n),b.each(b.ui.ddmanager.droppables[o.options.scope]||[],function(){var t,e,s,i;this.options.disabled||this.greedyChild||!this.visible||(i=!(s=r(o,this,this.options.tolerance,n))&&this.isover?"isout":s&&!this.isover?"isover":null)&&(this.options.greedy&&(e=this.options.scope,(s=this.element.parents(":data(ui-droppable)").filter(function(){return b(this).droppable("instance").options.scope===e})).length&&((t=b(s[0]).droppable("instance")).greedyChild="isover"===i)),t&&"isover"===i&&(t.isover=!1,t.isout=!0,t._out.call(t,n)),this[i]=!0,this["isout"===i?"isover":"isout"]=!1,this["isover"===i?"_over":"_out"].call(this,n),t&&"isout"===i&&(t.isout=!1,t.isover=!0,t._over.call(t,n)))})},dragStop:function(t,e){t.element.parentsUntil("body").off("scroll.droppable"),t.options.refreshPositions||b.ui.ddmanager.prepareOffsets(t,e)}})!==b.uiBackCompat&&b.widget("ui.droppable",b.ui.droppable,{options:{hoverClass:!1,activeClass:!1},_addActiveClass:function(){this._super(),this.options.activeClass&&this.element.addClass(this.options.activeClass)},_removeActiveClass:function(){this._super(),this.options.activeClass&&this.element.removeClass(this.options.activeClass)},_addHoverClass:function(){this._super(),this.options.hoverClass&&this.element.addClass(this.options.hoverClass)},_removeHoverClass:function(){this._super(),this.options.hoverClass&&this.element.removeClass(this.options.hoverClass)}});b.ui.droppable});
+});
+      </script>
+        <script>
+            function square(){
+                board_x=$("#square-width input").val()
+                board_y=$("#square-width input").val()
+                draw_square_rect()
+                if(window.innerHeight>=650){
+                    $("#tool-panel-board").css({"margin-top":""-board_height/2-(board_x*6)-8+"px"})
+                    $("#board-drag").css({"margin-top":""+$("#tool-panel-board").position().top*4.3-90+"px"})
+                }
+                else{
+                    $("#tool-panel-board").css({"margin-top":""-board_height/2-(board_x*6)-40+"px"})
+                    $("#board-drag").css({"margin-top":""+$("#tool-panel-board").position().top*4.3-121+"px"})
+                }
+                setTimeout(()=>{
+                    correction_bug_resize()
+                },10)
+            }
+            function rectangle(){
+                board_x=$("#rectangle-width input").eq(0).val()
+                board_y=$("#rectangle-width input").eq(1).val()
+                draw_square_rect()
+                if(window.innerHeight>=650){
+                    $("#tool-panel-board").css({"margin-top":""-board_height/2-(board_y*6)-8+"px"})
+                    $("#board-drag").css({"margin-top":""+$("#tool-panel-board").position().top*4.3-90+"px"})
+                }
+                else{
+                    $("#tool-panel-board").css({"margin-top":""-board_height/2-(board_y*6)-40+"px"})
+                    $("#board-drag").css({"margin-top":""+$("#tool-panel-board").position().top*4.3-121+"px"})
+                }
+                setTimeout(()=>{
+                    correction_bug_resize()
+                },10)
+            }    
+            function circle(){
+                board_x=$("#circle-diam input").val()
+                board_y=$("#circle-diam input").val()
+                draw_square_rect()
+                if(window.innerHeight>=650){
+                    $("#tool-panel-board").css({"margin-top":""-board_height/2-(board_x*6)-8+"px"})
+                    $("#board-drag").css({"margin-top":""+$("#tool-panel-board").position().top*4.3-90+"px"})
+                }
+                else{
+                    $("#tool-panel-board").css({"margin-top":""-board_height/2-(board_x*6)-40+"px"})
+                    $("#board-drag").css({"margin-top":""+$("#tool-panel-board").position().top*4.3-121+"px"})
+                }
+                setTimeout(()=>{
+                    correction_bug_resize()
+                },10)
+            } 
+        </script>
+        <script>
+          // index.js
+          // tool panel height
+let window_height=window.innerHeight;
+let board_height=$("#tool-panel-board").height();
+setInterval(()=>{
+    if(window.innerHeight>=650){
+        window_height=window.innerHeight-50;
+        $("#tool-panel").css({"height":""+window_height+"px"})
+        $("#tool-panel-accesoires-selection").css({"height":""+window_height-55+"px"})
+    }
+    else{
+        $("#tool-panel").css({"height":""+650+"px"})
+        $("#tool-panel-accesoires-selection").css({"height":""+545+"px"})
+    }
+})
+// FULL SCREEN
+$("#tool-panel-full-screen").click(()=>{
+    let elem= document.documentElement;
+    if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+      } else if (elem.webkitRequestFullscreen) { /* Safari */
+        elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) { /* IE11 */
+        elem.msRequestFullscreen();
+    }
+    if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) { /* Safari */
+        document.webkitExitFullscreen();
+      } else if (document.msExitFullscreen) { /* IE11 */
+        document.msExitFullscreen();
+    }
+})
+// shapes hover
+let shape1_1="https://i.ibb.co/v4MjQ0F/shape2.png";
+let shape1_2="https://i.ibb.co/9HD3cC8/shape2-2.png";
+/*
+$("#tool-shapes #tool-shape__1").mouseover(()=>{
+    $("#tool-shapes #tool-shape__1").css({"background":"url("+shape1_1+")","background-size":"cover","transition":"0.5s"})
+})
+$("#tool-shapes #tool-shape__1").mouseout(()=>{
+    if(board_type!="square"){
+        $("#tool-shapes #tool-shape__1").css({"background":"url("+shape1_2+")","background-size":"cover","transition":"0.5s"})
+    }
+})
+*/
+let shape2_1="https://i.ibb.co/pWCP8K5/shape1.png";
+let shape2_2="https://i.ibb.co/WBN7Xsr/shape1-2.png";
+$("#tool-shapes #tool-shape__2").mouseover(()=>{
+    $("#tool-shapes #tool-shape__2").css({"background":"url("+shape2_1+")","background-size":"cover","transition":"0.5s"})
+})
+$("#tool-shapes #tool-shape__2").mouseout(()=>{
+    if(board_type!="rectangle"){
+        $("#tool-shapes #tool-shape__2").css({"background":"url("+shape2_2+")","background-size":"cover","transition":"0.5s"})
+    }
+})
+let shape3_1="https://i.ibb.co/8cZ2PXv/shape3.png";
+let shape3_2="https://i.ibb.co/qNPYcfR/shape3-2.png";
+$("#tool-shapes #tool-shape__3").mouseover(()=>{
+    $("#tool-shapes #tool-shape__3").css({"background":"url("+shape3_1+")","background-size":"cover","transition":"0.5s"})
+})
+$("#tool-shapes #tool-shape__3").mouseout(()=>{
+   if(board_type!="circle"){
+    $("#tool-shapes #tool-shape__3").css({"background":"url("+shape3_2+")","background-size":"cover","transition":"0.5s"})
+   }
+})
+          // func.js
+// BOARD COLOR
+let board_color=jaune;
+          $("#tool-panel-board").css({"background-color":""+board_color+""})
+function change_bg(color){
+    $("#tool-panel-board").css({"background-color":""+color+""})
+    board_color=color;
+}
+
+// BOARD DIMENSION
+let board_type="rectangle";
+//------------------
+/* Hide square shape
+$("#tool-shapes #tool-shape__1").click(()=>{
+    $("#tool-shapes #tool-shape__1").css({"background":"url("+shape1_1+")","background-size":"cover","transition":"0.5s"})
+    $("#tool-shapes #tool-shape__2").css({"background":"url("+shape2_2+")","background-size":"cover","transition":"0.5s"})
+    $("#tool-shapes #tool-shape__3").css({"background":"url("+shape3_2+")","background-size":"cover","transition":"0.5s"})
+    $("#rectangle-width").hide();
+    $("#rectangle-height").hide();
+    $("#circle-diam").hide();
+    $("#square-width").show();
+    board_type="square";
+    square()
+})
+*/
+$("#tool-shapes #tool-shape__2").click(()=>{
+    $("#tool-shapes #tool-shape__2").css({"background":"url("+shape2_1+")","background-size":"cover","transition":"0.5s"})
+    $("#tool-shapes #tool-shape__1").css({"background":"url("+shape1_2+")","background-size":"cover","transition":"0.5s"})
+    $("#tool-shapes #tool-shape__3").css({"background":"url("+shape3_2+")","background-size":"cover","transition":"0.5s"})
+    $("#rectangle-width").show();
+    $("#rectangle-height").show();
+    $("#circle-diam").hide();
+    $("#square-width").hide();
+    board_type="rectangle";
+    rectangle()
+})
+$("#tool-shapes #tool-shape__3").click(()=>{
+    $("#tool-shapes #tool-shape__3").css({"background":"url("+shape3_1+")","background-size":"cover","transition":"0.5s"})
+    $("#tool-shapes #tool-shape__1").css({"background":"url("+shape1_2+")","background-size":"cover","transition":"0.5s"})
+    $("#tool-shapes #tool-shape__2").css({"background":"url("+shape2_2+")","background-size":"cover","transition":"0.5s"})
+    $("#rectangle-width").hide();
+    $("#rectangle-height").hide();
+    $("#circle-diam").show();
+    $("#square-width").show();
+    board_type="circle";
+    circle();
+})
+
+// MAX AND MIN INPUT
+let square_min;
+var xmax = largeur_max_pegboard;
+var ymax = hauteur_max_pegboard;
+var minDimension = Math.min(xmax, ymax);
+var maxDimension = Math.max(xmax, ymax);
+
+setInterval(()=>{
+        if($("#square-width input").val() > minDimension){
+        $("#square-width input").val(minDimension);
+        }
+        if($("#circle-diam input").val() > minDimension){
+            $("#circle-diam input").val(minDimension);
+        }
+        if($("#rectangle-width input").eq(0).val() > xmax){
+            $("#rectangle-width input").eq(0).val(xmax);
+        }
+        if($("#rectangle-width input").eq(1).val() > ymax){
+            $("#rectangle-width input").eq(1).val(ymax);
+        }
+        
+        // Taille maximale du rectangle selon la longueur et la largeur
+        if(($("#rectangle-width input").eq(0).val() > minDimension)){
+            ymax = minDimension;
+        }
+        if(($("#rectangle-width input").eq(1).val() > minDimension)){
+            xmax = minDimension;
+        }
+        if(($("#rectangle-width input").eq(0).val() <= minDimension)){
+            ymax = maxDimension;
+        }
+        if(($("#rectangle-width input").eq(1).val() <= minDimension)){
+            xmax = maxDimension;
+        }
+
+})
+// board drag 
+setInterval(()=>{
+    let board_drag_height=$("#tool-panel-board").innerHeight()*1.295;
+    let board_drag_width=$("#tool-panel-board").innerWidth()*1.295;
+    $("#board-drag").css({"width":""+board_drag_width+"","height":""+board_drag_height+""})
+},5)
+
+// LANG AND DEVICE
+$("#tool-language p span").eq(0).click(()=>{
+    $("#tool-language p span").eq(1).css({"color":"black"})
+    $("#tool-language p span").eq(0).css({"color":"white"})
+})
+$("#tool-language p span").eq(1).click(()=>{
+    $("#tool-language p span").eq(0).css({"color":"black"})
+    $("#tool-language p span").eq(1).css({"color":"white"})
+})
+$("#tool-devise p span").eq(0).click(()=>{
+    $("#tool-devise p span").eq(1).css({"color":"black"})
+    $("#tool-devise p span").eq(0).css({"color":"white"})
+})
+$("#tool-devise p span").eq(1).click(()=>{
+    $("#tool-devise p span").eq(0).css({"color":"black"})
+    $("#tool-devise p span").eq(1).css({"color":"white"})
+})
+
+// board design
+let board_design=false;
+/*
+$("#board-design").click(()=>{
+    if(board_design==false){
+  if(board_color!=bouleau){
+     for(i=0;i<3600;i++){ 
+        $("#all-losange").append("<img src='https://i.ibb.co/C7cwYXL/losange.png' >")
+  }
+        board_design=true;
+        prix_losange=40;
+    	gravure=true;
+        $("#board-design").css({"color":"white"})
+     }
+    }
+    else{
+      for(i=0;i<3600;i++){ 
+        $("#all-losange").children().remove();
+  }
+        board_design=false;
+        prix_losange=0;
+      	gravure=false;
+        $("#board-design").css({"color":"black"})
+    }
+})
+
+setInterval(()=>{
+    if(board_design==true && board_color!=bouleau){
+        $("#tool-panel-board-case div").css({"background-color":""+board_color+""})
+        $("#all-losange img").show()
+        $("#tool-panel-board-border").hide()
+    }
+    else{
+        $("#tool-panel-board-case div").css({"background-color":"black"})
+        $("#all-losange img").hide()
+        for(i=0;i<3600;i++){ 
+        $("#all-losange").children().remove();
+  }
+        board_design=false;
+        prix_losange=0;
+        $("#board-design").css({"color":"black"})
+
+    }
+},1)
+
+$("#board-design").click(()=>{
+  const gravureCheckbox = document.getElementById("gravureCheckbox");
+  if (gravureCheckbox.checked) {
+    gravure = true;
+  } else {
+    gravure = false;
+
+  }
+
+  const biseauCheckbox = document.getElementById("biseauCheckbox");
+  if (biseauCheckbox.checked) {
+    biseau = true;
+
+  } else {
+    biseau = false;
+
+  }
+})
+*/
+
+      </script>
+        <script>
+            let circle_info;
+            setInterval(()=>{
+                if(board_type=="square"){
+                    $("#tool-indivative-board-size-cm p span").html(board_x*3+3)
+                    $("#tool-indivative-board-size-inch p span").html(Math.round((board_x*3+3)*0.393701*10)/10)
+                    $("#tool-panel-board").css({"border-radius":"0px"})
+                    $("#board-drag").css({"border-radius":"0px"})
+                    $("#tool-panel-board-border").hide()
+                }
+                else if(board_type=="rectangle"){
+                    $("#tool-indivative-board-size-cm p span").eq(0).html(board_x*3+3)
+                    $("#tool-indivative-board-size-cm p span").eq(1).html(board_y*3+3)
+                    $("#tool-indivative-board-size-inch p span").eq(0).html(Math.round((board_x*3+3)*0.393701*10)/10)
+                    $("#tool-indivative-board-size-inch p span").eq(1).html(Math.round((board_y*3+3)*0.393701*10)/10)
+                    $("#tool-panel-board").css({"border-radius":"0px"})
+                    $("#board-drag").css({"border-radius":"0px"})
+                    $("#tool-panel-board-border").hide()
+                }
+                else if(board_type=="circle"){
+                    $("#tool-panel-board").css({"border-radius":"800px"})
+                    $("#board-drag").css({"border-radius":"800px"})
+                    $("#tool-indivative-board-size-cm p span").html(board_x*3+3)
+                    $("#tool-indivative-board-size-inch p span").html(Math.round((board_x*3+3)*0.393701*10)/10)
+                    circle_info=$("#tool-panel-board").innerHeight();
+                    if(board_design==false){
+                        $("#tool-panel-board-border").show()
+                        $("#tool-panel-board-border").css({"border-color":""+board_color+"","width":""+circle_info+"px","height":""+circle_info+"px"})
+                    }
+                }
+            },0)
+            if(window.innerHeight>=650){
+                    $("#tool-panel-board").css({"margin-top":""-board_height/2-(board_x*6)-8+"px"})
+                    $("#board-drag").css({"margin-top":""+$("#tool-panel-board").position().top*4.3-90+"px"})
+                }
+                else{
+                    $("#tool-panel-board").css({"margin-top":""-board_height/2-(board_x*6)-40+"px"})
+                    $("#board-drag").css({"margin-top":""+$("#tool-panel-board").position().top*4.3-121+"px"})
+                }
+            
+        </script>
+        <script >
+          
+//drop
+          // DECLARATION
+var relX;
+var relY;
+          var checkout=[];     
+var image_dragged_id;
+const board=$("#board-drag");
+// BOARD FUNCTIONS
+board.ready(function(){
+  board.on('dragenter', function(e){
+        e.preventDefault();
+    });
+    board.bind('dragover', function(e){
+        e.preventDefault(); 
+        relX = e.pageX ;
+        relY = e.pageY ;
+ image_dragged_id=$("#"+image_dragged+"").attr('id');
+    });
+    board.bind('dragleave', function(){
+    });
+    board.bind('drop', function(){
+      // REMOVE ACC  -------------------------------------------------------------------
+
+    // ADD ACC --------------------------------------------------------------------
+      let image_dragged_top=relY-board.offset().top-$("#"+image_dragged+"").innerHeight()*0.35;
+      let image_dragged_left=relX-board.offset().left-$("#"+image_dragged+"").innerWidth()*0.35;
+        $("#"+image_dragged+"").css({"position":"absolute","top":""+image_dragged_top+"px","left":""+image_dragged_left+"px","margin-top":"0px"})
+        $("#"+image_dragged+"").addClass("image-dropped")
+        $(this).append($("#"+image_dragged+""));
+    // DRAG API -----------------------------------------------------------
+    $("#"+image_dragged+"").draggable({
+          cursor: "move",
+          containment : 'body',
+          axis : 'z',
+          zIndex: 101,
+        });
+    // PRICING ---------------------------------------------------------------
+        prix_acc=prix_acc+parseFloat($("#"+image_dragged+"").attr('class').split(' ')[0]);
+      checkout.push(image_dragged_id);
+    });
+});
+
+/*
+// TUTO BUTTON
+$("#tool-tuto").click(()=>{
+  $("#tuto-panel").show()
+  $("#full-tool-area").hide()
+})
+*/
+
+// RESET BUTTON
+$("#tool-reset").click(()=>{
+    $("#board-drag").children().remove();
+    prix_acc=0;
+          checkout=[];
+  })
+// ACCESOIRES HOVER
+
+// ACCESOIRES HOVER
+function get_image(image_id){
+    image_dragged=image_id;
+  image_dragged_id=$("#"+image_dragged+"").attr('id');
+}
+
+// correction bug resize 
+function correction_bug_resize(){
+  var image_bug=$(".image-dropped")
+  if (board.length){
+  var board_position=[
+    board.position().top,
+    board.position().left+board.innerWidth(),
+    board.position().top+board.innerHeight(),
+    board.position().left,
+  ]}; // [top,right,bottom,left]
+        for(i=0;i<100;i++){
+          if (image_bug.eq(i).length) {
+          var image_bug_position=[
+            image_bug.eq(i).position().top,
+            image_bug.eq(i).position().left+image_bug.eq(i).innerWidth(),
+            image_bug.eq(i).position().top+image_bug.eq(i).innerHeight(),
+            image_bug.eq(i).position().left,
+          ]}; // [top,right,bottom,left]
+          if (board.length && image_bug.eq(i).length ){
+          if((image_bug_position[2]<board_position[0] || image_bug_position[0]>board_position[2] || image_bug_position[1]<0 || image_bug_position[3]>board.innerWidth())){
+          prix_acc=prix_acc-parseFloat(image_bug.eq(i).attr('class').split(' ')[0]);
+            var pos_image = checkout.indexOf(image_bug.eq(i).attr('id'));
+          checkout.splice(pos_image, 1)
+          image_bug.eq(i).remove()
+			
+          }}
+        }
+          }
+
+// DRAG AND DROP BY CLICKING
+$("#tool-panel-accesoires-selection div").click(()=>{
+
+$("#"+image_dragged+"").css({"margin-top":"0"})                                
+board.append($("#"+image_dragged+""))
+  $("#"+image_dragged+"").addClass("image-dropped")
+  prix_acc=prix_acc+parseFloat($("#"+image_dragged+"").attr('class').split(' ')[0]);
+          checkout.push(image_dragged_id);
+  $("#"+image_dragged+"").draggable({
+    cursor: "move",
+    containment : 'body',
+    axis : 'z',
+    zIndex: 101,
+  });
+  get_image_click();
+          
+})
+function get_image_click(acc_id){
+    image_dragged=$("#"+acc_id+" img").attr('id');
+  image_dragged_id=$("#"+image_dragged+"").attr('id');
+}
+          
+          	var image_position;
+                var board_position;
+          var image_dragged;
+      setInterval(()=>{
+        if (board.length){
+        board_position=[
+        board.position().top,
+        board.position().left+board.innerWidth(),
+        board.position().top+board.innerHeight(),
+        board.position().left,
+      ]}; // [top,right,bottom,left]
+      if ($("#"+image_dragged+"").length) {
+      image_position=[
+        $("#"+image_dragged+"").position().top,
+        $("#"+image_dragged+"").position().left+$("#"+image_dragged+"").innerWidth(),
+        $("#"+image_dragged+"").position().top+$("#"+image_dragged+"").innerHeight(),
+        $("#"+image_dragged+"").position().left,
+      ]}; // [top,right,bottom,left]
+          if((board.length) && ($("#"+image_dragged+"").length)){
+      if((image_position[2]<board_position[0] || image_position[0]>board_position[2] || image_position[1]<0 || image_position[3]>board.innerWidth())
+       && $("#"+image_dragged+"").is('.ui-draggable-dragging')){
+        prix_acc=prix_acc-parseFloat($("#"+image_dragged+"").attr('class').split(' ')[0]);
+        var pos_image = checkout.indexOf($("#"+image_dragged+"").attr('id'));
+          checkout.splice(pos_image, 1)
+       $("#"+image_dragged+"").remove()
+      }
+          }
+    },10)
+    
+    
+    // PAGE 2 AND 3
+    $("#page1-next").click(()=>{
+                  $("#page1-next").hide()  
+                  $("#tool-panel").hide();
+                  $("#tool-menu").children().hide();
+                  $("#tool-full-price").show();
+                  $("#tool-full-price").css({"margin-left":"-150px"});
+          $("#tool-panel-full-screen").hide();
+                if(board_design==false && board_color!=bouleau){
+      				// show page 2
+                  $("#page2").css({"display":"flex"});
+    			}
+          else{
+          	// show page3
+            $("#page3").css({"display":"flex"});
+          }
+          
+    });
+    var losange_pic="https://i.ibb.co/C7cwYXL/losange.png";
+    // from page 2 to page 3
+          $("#page2-option1 button").click(()=>{
+                    $("#page2").css({"display":"none"});  
+          			$("#page3").css({"display":"flex"});
+          			board_design==false
+          			prix_losange=0;
+          			gravure=false
+          })
+           $("#page2-option1 img").click(()=>{
+                    $("#page2").css({"display":"none"});  
+          			$("#page3").css({"display":"flex"});
+          			board_design==false
+          			prix_losange=0;
+          			gravure=false;
+          })
+           $("#page2-option2 button").click(()=>{
+                    $("#page2").css({"display":"none"});  
+          			$("#page3").css({"display":"flex"});
+          			for(i=0;i<3600;i++){ 
+        $("#all-losange").append("<img src='"+losange_pic+"' >")
+  }
+        board_design=true;
+        prix_losange=40;
+          gravure=true;
+        $("#board-design").css({"color":"white"})
+          })
+          $("#page2-option2 img").click(()=>{
+                    $("#page2").css({"display":"none"});  
+          			$("#page3").css({"display":"flex"});
+          			for(i=0;i<3600;i++){ 
+        $("#all-losange").append("<img src='"+losange_pic+"' >")
+  }
+        board_design=true;
+        prix_losange=40;
+          gravure=true;
+        $("#board-design").css({"color":"white"})
+          })
+          
+      // RETURN FROM PAGES
+          $("#page2-retour").click(()=>{
+                    $("#page1-next").show()  
+                    $("#tool-panel").show();
+                    $("#tool-menu").children().show();
+                    $("#tool-full-price").show();
+                    $("#tool-full-price").css({"margin-left":"-255px"}); 
+          			$("#page2").css({"display":"none"});
+          			$("#tool-panel-full-screen").show();
+          });
+          $("#page3-retour").click(()=>{
+                    $("#page1-next").show()  
+                    $("#tool-panel").show();
+                    $("#tool-menu").children().show();
+                    $("#tool-full-price").show();
+                    $("#tool-full-price").css({"margin-left":"-255px"}); 
+          			$("#page3").css({"display":"none"});
+         			$("#tool-panel-full-screen").show();
+          });
+          $("#page4-retour").click(()=>{
+                    $("#page1-next").show()  
+                    $("#tool-panel").show();
+                    $("#tool-menu").children().show();
+                    $("#tool-full-price").show();
+                    $("#tool-full-price").css({"margin-left":"-255px"}); 
+          			$("#page4").css({"display":"none"});
+         			$("#tool-panel-full-screen").show();
+          });
+
+    
+      $("#page1-next").click(()=>{
+        $("#page1-next").hide()  
+        $("#tool-panel").hide();
+        $("#tool-menu").children().hide();
+      })
+
+    
+      </script>    
+
+{{ 'configurateur.traduction.js' | asset_url | script_tag }}
+{{ 'configurateur.prix.js' | asset_url | script_tag }}
+{{ 'configurateur.shopify-api.js' | asset_url | script_tag }}
+   
+<script>  
+function dossier(id){
+  $("#selection-retour").show()
+  for(j=0;j<dossiers.length;j++){
+    $("#"+j+"").hide();
+    dossiers[j].visible = '0'
+    if(dossiers[j].dossier_parent === dossiers[id].nom_FR) {
+      $("#"+j).show()
+      dossiers[j].visible = '1'
+    }
+  }
+  for(i=0;i<articles.length;i++){
+    if(articles[i].type==dossiers[id].type){
+      $("#acc"+(i+1)+"").show();
+      articles[i].visible = '1'
+    }
+    else{
+      $("#acc"+(i+1)+"").hide();
+      articles[i].visible = '0'
+    }
+  }
+}
+
+function creation_article(num) {
+  let prx=$("#acc"+num+" p span").html();
+  $("#acc"+num+" p").html(""+articles[num-1].nom_FR+" (<span>"+prx+"</span>)")
+  $("#acc"+num+" img").attr("src",articles[num-1].photo);
+  $("#acc"+num+"").css({"max-width":"145px","min-height":"145px","height":"auto","overflow":"hidden","position":"relative","margin-left":"1px","margin-right":"1px"});
+  $("#acc"+num+" img").css({"width":""+(articles[num-1].taille_CM)*1.3+"mm","min-width":""+(articles[num-1].taille_CM)*1.3+"mm"})
+  $("#acc"+num+" img").eq(49).css({"position":"relative","z-index":"10","width":""+(articles[num-1].taille_CM)*1.3+"mm","min-width":""+(articles[num-1].taille_CM)*1.3+"mm"})
+}
+
+for(i=0;i<articles.length;i++){
+  creation_article(i+1);
+  if(articles[i].profondeur!='0'){
+    $("#acc"+(i+1)+"").hide();
+    articles[i].visible = '0';
+  } else {
+    $("#acc"+(i+1)+"").show();
+    articles[i].visible = '1';
+
+  }
+}
+
+$("#selection-retour").click(selectionRetour);
+
+function selectionRetour() {
+  for(j=0;j<dossiers.length;j++){
+    if (dossiers[j].visible == '1') {
+      var dossierToShow = dossiers[j].dossier_parent;
+    }
+  }
+
+  if (j == dossiers.length) {
+    for(i=0;i<articles.length;i++){
+      if (articles[i].visible == '1') {
+        var dossierToShow = articles[i].type;
+      }
+    }
+  }
+
+  for(j=0;j<dossiers.length;j++){
+    if (dossiers[j].nom_FR == dossierToShow) {
+      var dossierToShowParent = dossiers[j].dossier_parent;
+    }
+  }
+
+  for(j=0;j<dossiers.length;j++){
+    if (dossiers[j].dossier_parent == dossierToShowParent) {
+      $("#"+j+"").show();
+      dossiers[j].visible = '1'
+    } else {
+      $("#"+j+"").hide();
+      dossiers[j].visible = '0'
+    }
+  }
+  
+  for(i=0;i<articles.length;i++){
+    $("#acc"+(i+1)+"").hide();
+    articles[i].visible = '0'
+    if (articles[i].type == dossierToShowParent){
+      $("#acc"+(i+1)+"").show();
+      articles[i].visible = '1'
+    }
+  }
+
+  if (dossierToShowParent == '') {
+    $("#selection-retour").hide()
+  }
+}
+
+</script>
+    </body>
+</html>
