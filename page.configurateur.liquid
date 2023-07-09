@@ -28,6 +28,9 @@ var colors_ =  [
     {"name":"Valchromat Gris", "color":"#d0ceca"}
 ];
 
+// Choix du bois chargé par défaut, doit correspondre au nom de la liste ci-dessus.
+const default_wood = 'Contreplaqué Bouleau'
+
 var pin="#d49b66",
     bouleau="#e9dacc",
     noir="#312c2d",
@@ -205,52 +208,68 @@ FIN FICHIER : configurateur.articles.js.liquid
                       document.write("</div>");
                         }
                       </script>
-<!-- FIN DE LA LISTE DES ACCESSOIRES --> 
-                  </span>
+                      </span>
+                      </div> 
+                      <!-- FIN DE LA LISTE DES ACCESSOIRES --> 
 
-                </div>
-                
-                <div id="tool-panel-full-price" style="display: none;">
-                  <p>
-                    Prix total : <span>0</span>€
-                  </p>
-                </div>
-                <div id="tool-panel-board-area">
-                    <div id="board-drag" > </div>
-                    <div id="tool-panel-board">
-                      <div id="all-losange" class="d-flex align-content-stretch flex-wrap">
-                        </div>
-                        <div id="tool-panel-board-border"> </div>
-                            
-                        <div id="tool-panel-board-all-cases">
-                            <script>
-                                let board_x=31;
-                                let board_y=15;
-                                function draw_square_rect(){
-                                    var $newdiv1 = ( "<div id='tool-panel-board-all-cases-line'> </div>" )
-                                    var $newdiv2 = ( "<div id='tool-panel-board-case'> <div> </div> <div> </div> <div> </div> <div> </div> </div>" )
-                                    $("#tool-panel-board-all-cases").children().remove();
-                                    for(i=0;i<board_y-1;i++){
-                                        $("#tool-panel-board-all-cases").append($newdiv1)
-                                        for(j=0;j<board_x-1;j++){
-                                            $("#tool-panel-board-all-cases #tool-panel-board-all-cases-line").eq(i).append($newdiv2)  
-                                            }
-                                        }
-                                    }
-                                draw_square_rect();
-                            </script>
-                        </div>
-                    </div>
-                </div>
-<!-- Modification du texte présent dans le configurateur à cet endroit. -->
+                      <!-- Début du bloc pour afficher le prix total -->
+<div id="tool-panel-full-price" style="display: none;">
+    <p>
+    <!-- Le prix total sera mis à jour dynamiquement -->
+        Prix total : <span>0</span>€ 
+    </p>
+</div>
+<!-- Fin du bloc pour afficher le prix total -->
 
-  <div id="tool-panel-details-text" style="font-family: 'Assistant', sans-serif; font-weight: 400;">
-  <p id="maxSizeText" style="font-size: 18px; margin-bottom: 2px">
-    La taille maximale est de <span id="maxWidth"></span> x <span id="maxHeight"></span> cm<br>
-    <a href="https://get-quark.com/pages/contactez-nous"target="_blank">Contactez-nous</a> pour des dimensions supérieures<br>
-  </p>
+<!-- Début du bloc pour la zone de la planche -->
+<div id="tool-panel-board-area">
+    <div id="board-drag"></div> <!-- Zone pour le glisser-déposer -->
+    <div id="tool-panel-board"> <!-- Début du bloc de la planche -->
+        <div id="all-losange" class="d-flex align-content-stretch flex-wrap"></div> <!-- Zone pour les losanges -->
+        <div id="tool-panel-board-border"></div> <!-- Bordure de la planche -->
+
+        <!-- Début du bloc pour tous les cases de la planche -->
+        <div id="tool-panel-board-all-cases">
+            <script>
+                let board_x=31; // Nombre de cases en x
+                let board_y=15; // Nombre de cases en y
+
+                // Fonction pour dessiner un rectangle de cases
+                function draw_square_rect(){
+                    var $newdiv1 = ( "<div id='tool-panel-board-all-cases-line'> </div>" ) // Nouvelle ligne
+                    var $newdiv2 = ( "<div id='tool-panel-board-case'> <div> </div> <div> </div> <div> </div> <div> </div> </div>" ) // Nouvelle case
+
+                    // Supprime tous les enfants de l'élément avec l'ID tool-panel-board-all-cases
+                    $("#tool-panel-board-all-cases").children().remove();
+
+                    // Boucle pour créer les lignes et les cases
+                    for(i=0;i<board_y-1;i++){
+                        $("#tool-panel-board-all-cases").append($newdiv1)
+                        for(j=0;j<board_x-1;j++){
+                            $("#tool-panel-board-all-cases #tool-panel-board-all-cases-line").eq(i).append($newdiv2)  
+                        }
+                    }
+                }
+                // Appelle la fonction pour dessiner le rectangle de cases
+                draw_square_rect();
+            </script>
+        </div>
+        <!-- Fin du bloc pour tous les cas de Pegboard -->
+    </div>
+    <!-- Fin du bloc de la planche -->
 </div>
+<!-- Fin du bloc pour la zone de la planche -->
+
+<!-- Début du bloc pour le texte des détails -->
+<div id="tool-panel-details-text" style="font-family: 'Assistant', sans-serif; font-weight: 400;">
+    <p id="maxSizeText" style="font-size: 18px; margin-bottom: 2px">
+        La taille maximale est de <span id="maxWidth"></span> x <span id="maxHeight"></span> cm<br>
+        <a href="https://get-quark.com/pages/contactez-nous"target="_blank">Contactez-nous</a> pour des dimensions supérieures<br>
+    </p>
 </div>
+<!-- Fin du bloc pour le texte des détails -->
+</div>
+
 
 <script>
 document.getElementById('maxWidth').textContent = taille_largeur_max_en_cm;
@@ -373,10 +392,11 @@ document.getElementById('maxHeight').textContent = taille_hauteur_max_en_cm;
                     </div>
                 </div>
                 <div id="tool-colors">
-                  
-    <select id="color-selector" name="color-selector" onchange="change_bg(this.value)">
-        <!-- Options will be populated here by JavaScript -->
-      </select>
+                  <p style="font-family: 'Assistant', sans-serif; font-weight: bold; font-size: 18px; margin-bottom: 2px; color: white">Bois</p>
+                    <select id="color-selector" name="color-selector" onchange="change_bg(this.value);" style="font-size: 16px; line-height: 1; border: 0; border-radius: 3px; height: 2em; background: white; color: #3a3a3a; padding: 0.6em 1.4em 0.5em 0.8em; margin-left: 0.5em; -webkit-appearance: none; -moz-appearance: none; appearance: none; outline: none;;">
+                      <!-- Options will be populated here by JavaScript -->
+                    </select>
+              
                     <script>
                     // Select the dropdown list
                     var dropdown = document.getElementById("color-selector");
@@ -387,10 +407,11 @@ document.getElementById('maxHeight').textContent = taille_hauteur_max_en_cm;
                       var option = document.createElement("option");
                     
                       // Set the value of the option to the color
-                      console.log(color.name)
                       option.value = color.color;
                       option.text = color.name;
-                    
+                      if (color.name == default_wood) {
+                        option.selected = 'selected'
+                      }
                       // Add the option to the dropdown list
                       dropdown.add(option);
                     });
@@ -565,8 +586,10 @@ $("#tool-shapes #tool-shape__3").mouseout(()=>{
 })
           // func.js
 // BOARD COLOR
-let board_color=jaune;
-          $("#tool-panel-board").css({"background-color":""+board_color+""})
+let board_color=colors_.find(function(item) {
+  return item.name === default_wood;
+}).color;
+$("#tool-panel-board").css({"background-color":""+board_color+""})
 function change_bg(color){
     $("#tool-panel-board").css({"background-color":""+color+""})
     board_color=color;
@@ -782,12 +805,14 @@ $("#board-design").click(()=>{
         <script >
           
 //drop
-          // DECLARATION
+// DECLARATION
 var relX;
 var relY;
-          var checkout=[];     
+var checkout=[];     
 var image_dragged_id;
 const board=$("#board-drag");
+               console.log(relX)
+ 
 // BOARD FUNCTIONS
 board.ready(function(){
   board.on('dragenter', function(e){
@@ -805,8 +830,9 @@ board.ready(function(){
       // REMOVE ACC  -------------------------------------------------------------------
 
     // ADD ACC --------------------------------------------------------------------
-      let image_dragged_top=relY-board.offset().top-$("#"+image_dragged+"").innerHeight()*0.35;
-      let image_dragged_left=relX-board.offset().left-$("#"+image_dragged+"").innerWidth()*0.35;
+      let image_dragged_top=relY-board.offset().top-$("#"+image_dragged+"").innerHeight();
+      let image_dragged_left=relX-board.offset().left-$("#"+image_dragged+"").innerWidth();
+      console.log(image_dragged_left)
         $("#"+image_dragged+"").css({"position":"absolute","top":""+image_dragged_top+"px","left":""+image_dragged_left+"px","margin-top":"0px"})
         $("#"+image_dragged+"").addClass("image-dropped")
         $(this).append($("#"+image_dragged+""));
@@ -837,7 +863,6 @@ $("#tool-reset").click(()=>{
     prix_acc=0;
           checkout=[];
   })
-// ACCESOIRES HOVER
 
 // ACCESOIRES HOVER
 function get_image(image_id){
@@ -845,62 +870,94 @@ function get_image(image_id){
   image_dragged_id=$("#"+image_dragged+"").attr('id');
 }
 
-// correction bug resize 
+// Correction Bug Resize 
 function correction_bug_resize(){
-  var image_bug=$(".image-dropped")
+  var image_bug = $(".image-dropped");
   if (board.length){
-  var board_position=[
-    board.position().top,
-    board.position().left+board.innerWidth(),
-    board.position().top+board.innerHeight(),
-    board.position().left,
-  ]}; // [top,right,bottom,left]
-        for(i=0;i<100;i++){
-          if (image_bug.eq(i).length) {
-          var image_bug_position=[
-            image_bug.eq(i).position().top,
-            image_bug.eq(i).position().left+image_bug.eq(i).innerWidth(),
-            image_bug.eq(i).position().top+image_bug.eq(i).innerHeight(),
-            image_bug.eq(i).position().left,
-          ]}; // [top,right,bottom,left]
-          if (board.length && image_bug.eq(i).length ){
-          if((image_bug_position[2]<board_position[0] || image_bug_position[0]>board_position[2] || image_bug_position[1]<0 || image_bug_position[3]>board.innerWidth())){
-          prix_acc=prix_acc-parseFloat(image_bug.eq(i).attr('class').split(' ')[0]);
-            var pos_image = checkout.indexOf(image_bug.eq(i).attr('id'));
-          checkout.splice(pos_image, 1)
-          image_bug.eq(i).remove()
-			
-          }}
-        }
-          }
+    var board_position = [
+      board.position().top,
+      board.position().left + board.innerWidth(),
+      board.position().top + board.innerHeight(),
+      board.position().left,
+    ]; // [top,right,bottom,left]
+
+    image_bug.each(function(i, elem) {
+      var $elem = $(elem);
+      var image_bug_position = [
+        $elem.position().top,
+        $elem.position().left + $elem.innerWidth(),
+        $elem.position().top + $elem.innerHeight(),
+        $elem.position().left,
+      ]; // [top,right,bottom,left]
+
+      if((image_bug_position[2] < board_position[0] || image_bug_position[0] > board_position[2] || image_bug_position[1] < 0 || image_bug_position[3] > board.innerWidth())){
+        prix_acc -= parseFloat($elem.attr('class').split(' ')[0]);
+        var pos_image = checkout.indexOf($elem.attr('id'));
+        checkout.splice(pos_image, 1);
+        $elem.remove();
+      }
+    });
+  }
+}
 
 // DRAG AND DROP BY CLICKING
 $("#tool-panel-accesoires-selection div").click(()=>{
 
 $("#"+image_dragged+"").css({"margin-top":"0"})                                
-board.append($("#"+image_dragged+""))
-  $("#"+image_dragged+"").addClass("image-dropped")
-  prix_acc=prix_acc+parseFloat($("#"+image_dragged+"").attr('class').split(' ')[0]);
-          checkout.push(image_dragged_id);
+  
+  // Ajoutez l'image à la board
+  board.append($("#"+image_dragged+""));
+
+  // Calculez la position centrale de la board
+  let boardCenterX = board.width() / 2;
+  let boardCenterY = board.height() / 2;
+
+  // Calculez la position de l'image pour la centrer
+  let imageCenterX = boardCenterX - ($("#"+image_dragged+"").width() / 2);
+  let imageCenterY = boardCenterY - ($("#"+image_dragged+"").height() / 2);
+  
+  // Positionnez l'image au centre de la board
+  $("#"+image_dragged+"").css({top: imageCenterY, left: imageCenterX});
+
+  // Ajoute la classe "image-dropped" à l'élément actuellement en train d'être déplacé.
+  $("#"+image_dragged+"").addClass("image-dropped");
+  
+  // Met à jour le prix total des accessoires
+  prix_acc = prix_acc + parseFloat($("#"+image_dragged+"").attr('class').split(' ')[0]);
+  
+  // Ajoute l'ID de l'image actuellement en train d'être déplacée à la liste de contrôle
+  checkout.push(image_dragged_id);
+  
+  // Plusieurs options sont définies pour personnaliser le comportement du glisser-déposer
+  // - cursor: "move" change le curseur pour indiquer que l'élément peut être déplacé.
+  // - containment: 'body' limite le mouvement de l'élément à l'intérieur du corps de la page.
+  // - axis: 'z' permet à l'élément d'être déplacé le long de l'axe z (c'est-à-dire vers l'avant et vers l'arrière en termes de profondeur).
+  // - zIndex: 101 place l'élément au-dessus des autres éléments qui ont un zIndex inférieur lorsqu'il est déplacé.
+  
   $("#"+image_dragged+"").draggable({
     cursor: "move",
     containment : 'body',
     axis : 'z',
     zIndex: 101,
   });
+
   get_image_click();
           
 })
+// Définit la fonction get_image_click qui prend un argument acc_id          
 function get_image_click(acc_id){
-    image_dragged=$("#"+acc_id+" img").attr('id');
-  image_dragged_id=$("#"+image_dragged+"").attr('id');
+      // Récupère l'ID de l'image à partir de l'élément avec l'ID acc_id et le stocke dans la variable image_dragged
+      image_dragged=$("#"+acc_id+" img").attr('id');
+      // Récupère l'ID de l'élément avec l'ID image_dragged et le stocke dans la variable image_dragged_id
+      image_dragged_id=$("#"+image_dragged+"").attr('id');
 }
-          
-          	var image_position;
-                var board_position;
-          var image_dragged;
-      setInterval(()=>{
+          var image_position;
+          var board_position;
+          var image_dragged; 
+// Définit un intervalle qui s'exécute toutes les XX millisecondes
+setInterval(()=>{
         if (board.length){
+        // Récupère la position de l'élément board et la stocke dans la variable board_position
         board_position=[
         board.position().top,
         board.position().left+board.innerWidth(),
@@ -914,19 +971,25 @@ function get_image_click(acc_id){
         $("#"+image_dragged+"").position().top+$("#"+image_dragged+"").innerHeight(),
         $("#"+image_dragged+"").position().left,
       ]}; // [top,right,bottom,left]
-          if((board.length) && ($("#"+image_dragged+"").length)){
-      if((image_position[2]<board_position[0] || image_position[0]>board_position[2] || image_position[1]<0 || image_position[3]>board.innerWidth())
-       && $("#"+image_dragged+"").is('.ui-draggable-dragging')){
-        prix_acc=prix_acc-parseFloat($("#"+image_dragged+"").attr('class').split(' ')[0]);
-        var pos_image = checkout.indexOf($("#"+image_dragged+"").attr('id'));
-          checkout.splice(pos_image, 1)
-       $("#"+image_dragged+"").remove()
-      }
-          }
-    },10)
-    
-    
-    // PAGE 2 AND 3
+      
+    // Si l'élément board et l'élément avec l'ID image_dragged existent
+    if (board.length && $("#"+image_dragged+"").length) {
+        // Si l'élément avec l'ID image_dragged est hors des limites de l'élément board et est en train d'être déplacé
+        if ((image_position[2] < board_position[0] || image_position[0] > board_position[2] || image_position[1] < 0 || image_position[3] > board.innerWidth())
+            && $("#"+image_dragged+"").is('.ui-draggable-dragging')) {
+            // Soustrait le prix de l'élément avec l'ID image_dragged du total
+            prix_acc -= parseFloat($("#"+image_dragged+"").attr('class').split(' ')[0]);
+            // Trouve l'index de l'ID de l'élément avec l'ID image_dragged dans la liste de contrôle
+            var pos_image = checkout.indexOf(image_dragged_id);
+            // Supprime l'ID de l'élément avec l'ID image_dragged de la liste de contrôle
+            checkout.splice(pos_image, 1);
+            // Supprime l'élément avec l'ID image_dragged
+            $("#"+image_dragged+"").remove();
+        }
+    }
+}, 50);
+
+// PAGE 2 AND 3
     $("#page1-next").click(()=>{
                   $("#page1-next").hide()  
                   $("#tool-panel").hide();
@@ -945,7 +1008,8 @@ function get_image_click(acc_id){
           
     });
     var losange_pic="https://i.ibb.co/C7cwYXL/losange.png";
-    // from page 2 to page 3
+
+// from page 2 to page 3
           $("#page2-option1 button").click(()=>{
                     $("#page2").css({"display":"none"});  
           			$("#page3").css({"display":"flex"});
@@ -983,7 +1047,7 @@ function get_image_click(acc_id){
         $("#board-design").css({"color":"white"})
           })
           
-      // RETURN FROM PAGES
+// RETURN FROM PAGES
           $("#page2-retour").click(()=>{
                     $("#page1-next").show()  
                     $("#tool-panel").show();
